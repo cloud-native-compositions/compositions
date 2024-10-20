@@ -11,19 +11,21 @@ require customization.  Replace [TODO: PROJECTNAME] with the name of your projec
 
 <!-- template begins here-->
 
-# Welcome to the [TODO:Projectname] Project!
+# Welcome to the Cloud Native Compositions Project!
 
 <!-- Mission Statement -->
 <!-- More information about crafting your mission statement with examples -->
 <!-- https://contribute.cncf.io/maintainers/governance/charter/ -->
 
-[TODO: PROJECTNAME] is a [TODO: Type of Tool] that [TODO: Functions it
+Cloud Native Compositions is a [TODO: Type of Tool] that [TODO: Functions it
 performs].  [TODO: Reasons why these are needed and valuable].  [TODO:
 Implementation, strategy and architecture].
 
 [TODO: Additional paragraph describing your project (optional)]
 
-[TODO: PROJECTNAME] is hosted by the [Cloud Native Computing Foundation (CNCF)](https://cncf.io).
+<!-- If CNCF:
+Cloud Native Compositions is hosted by the [Cloud Native Computing Foundation (CNCF)](https://cncf.io).
+-->
 
 ## Getting Started
 
@@ -50,7 +52,7 @@ CONTRIBUTING.md).
 
 ### In Scope
 
-[TODO: PROJECTNAME] is intended to [TODO: Core functionality]. As such, the
+Cloud Native Compositions is intended to [TODO: Core functionality]. As such, the
 project will implement or has implemented:
 
 * [TODO: High-level Item 1]
@@ -60,14 +62,14 @@ project will implement or has implemented:
 
 ### Out of Scope
 
-[TODO: PROJECTNAME] will be used in a cloud native environment with other
+Cloud Native Compositions will be used in a cloud native environment with other
 tools. The following specific functionality will therefore not be incorporated:
 
 * [TODO: Excluded function 1]
 * [TODO: Excluded function 2]
 
 
-[TODO: PROJECTNAME] implements [TODO: List of major features, existing or
+Cloud Native Compositions implements [TODO: List of major features, existing or
 planned], through [TODO: Implementation
 requirements/language/architecture/etc.]. It will not cover [TODO: short list
 of excluded items]
@@ -94,10 +96,8 @@ prospective contributors know when and where to engage with you. -->
 
 ## License
 
-<!-- Template: https://github.com/cncf/project-template/blob/main/LICENSE -->
-This project is licensed under [TODO: Add name of license and link to your LICENSE file]
+This project is licensed under the [Apache License 2.0](LICENSE)
 
 ## Conduct
 
-<!-- Template: https://github.com/cncf/project-template/blob/main/CODE_OF_CONDUCT.md -->
-We follow the CNCF Code of Conduct [TODO: Insert link to your CODE_OF_CONDUCT.md file].
+We follow the [CNCF Code of Conduct](CODE_OF_CONDUCT.md).
