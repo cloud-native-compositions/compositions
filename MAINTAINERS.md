@@ -10,6 +10,7 @@ The current Maintainers Group for the Cloud Native Compositions Project consists
 | [@matthchr](https://github.com/matthchr)                | Microsoft |                   |
 | [@nicslatts](https://github.com/nicslatts)              | Google    |                   |
 | [@rynowak](https://github.com/rynowak)                  | Microsoft |                   |
+| [@LukeMwila](https://github.com/LukeMwila)                  | AWS |                   |
 
 <!-- If-CNCF:
 This list must be kept in sync with the [CNCF Project Maintainers list](https://github.com/cncf/foundation/blob/master/project-maintainers.csv).
