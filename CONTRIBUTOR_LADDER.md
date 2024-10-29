@@ -188,3 +188,4 @@ Contact the Maintainers about changing to Emeritus status, or reducing your cont
 ## Contact
 * For inquiries, please reach out to:
     *  <!-- TODO: fill in contact info for appropriate group or person for contributor mentorship-->
+    *  <!-- TODO: Create a slack channel for CNC -->
