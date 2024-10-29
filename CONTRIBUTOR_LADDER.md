@@ -103,12 +103,6 @@ An Organization Member must meet the responsibilities and has the requirements o
     * Can sponsor other contributors to become Org Members
 
 
-The process for a Contributor to become an Organization Member is as follows:
-
-<!-- the process of becoming an organization member is going to depend strongly on how your project manages its infrastructure. TODO: Project leads to fill in exact details of how a contributor becomes an organization member-->
-1.
-2.
-3.
 
 ### Reviewer
 <!-- Some projects have CI/CD systems that allow for designating people as official reviewers, whose reviews count towards a PR being accepted into the project.  Other projects offer reviewers specific recognition and status.  This role is for either of those kinds of projects. Smaller projects will not use it.-->
