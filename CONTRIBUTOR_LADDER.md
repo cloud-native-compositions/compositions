@@ -100,10 +100,7 @@ An Organization Member must meet the responsibilities and has the requirements o
 * Privileges:
     * May be assigned Issues and Reviews
     * May give commands to CI/CD automation
-    * Entitled to vote in the [TODO: appropriate election]
-    * Can be added to [TODO: Repo Host] teams
-    * Can recommend other contributors to become Org Members
-    * [TODO: Other Privileges]
+    * Can sponsor other contributors to become Org Members
 
 
 The process for a Contributor to become an Organization Member is as follows:
