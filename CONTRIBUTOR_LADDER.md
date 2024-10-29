@@ -141,11 +141,6 @@ A Maintainer must meet the responsibilities and requirements of a Reviewer, plus
     * TBD
     
 
-Process of becoming a maintainer:
-<!-- TODO: this process will vary widely across projects, both because of project code structure, and because of project governance.  For example, in some projects the Steering Committee approves new Maintainers.  What's below is just an example from a simple project in which the maintainers are also the project leaders, and which uses GitHub OWNERS files. -->
-1. Any current Maintainer may nominate a current Reviewer to become a new Maintainer, by opening a PR against the root of the [TODO: main repository name] adding the nominee as an Approver in the OWNERS file.
-2. The nominee will add a comment to the PR testifying that they agree to all requirements of becoming a Maintainer.
-3. A majority of the current Maintainers must then approve the PR.
 
 <!-- Some projects might add a limit on the percentage of maintainers from a specific organization here.  Obviously this only works if your project has
 reached the stage where you have a reasonable diversity of maintainers.  At that point, you can add a statement like this: 
