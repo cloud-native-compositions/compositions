@@ -64,7 +64,9 @@ Description: A Contributor contributes directly to the project and adds value to
     * Run or helps run events
     * Promote the project in public
     * Help run the project infrastructure
-    * [TODO: other small contributions]
+    * Quick starts, recipe book, examples, blogs (including end user blogs)
+    * Share use-cases (blog posts, live/recorded webinars...)
+    * Share example/reusable compositions [eventually we want store these in artifacthub.io]
 * Privileges:
     * Invitations to contributor events
     * Eligible to become an Organization Member
