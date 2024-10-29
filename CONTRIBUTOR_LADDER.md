@@ -114,21 +114,11 @@ Reviewers are responsible for a "specific area." This can be a specific code dir
 Reviewers have all the rights and responsibilities of an Organization Member, plus:
 
 * Responsibilities include:
-    * Following the reviewing guide
-    * Reviewing most Pull Requests against their specific areas of responsibility
-    * Reviewing at least [TODO: Number] PRs per year
-    * Helping other contributors become reviewers
+    * TBD
 * Requirements:
-    * Experience as a Contributor for at least [TODO: Number] months
-    * Is an Organization Member
-    * Has reviewed, or helped review, at least [TODO: Number] Pull Requests
-    * Has analyzed and resolved test failures in their specific area
-    * Has demonstrated an in-depth knowledge of the specific area
-    * Commits to being responsible for that specific area
-    * Is supportive of new and occasional contributors and helps get useful PRs in shape to commit
+    * TBD
 * Additional privileges:
-    * Has GitHub or CI/CD rights to approve pull requests in specific directories
-    * Can recommend and review other contributors to become Reviewers
+    * TBD
     
 <!-- TODO: define how this works with your specific system.  For example:  "Is listed as Approver in the OWNERS file for certain directories. -->
 
