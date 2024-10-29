@@ -138,23 +138,11 @@ Description: Maintainers are very established contributors who are responsible f
 A Maintainer must meet the responsibilities and requirements of a Reviewer, plus:
 
 * Responsibilities include:
-    * Reviewing at least [TODO: Number] PRs per year, especially PRs that involve multiple parts of the project
-    * Mentoring new Reviewers
-    * Writing refactoring PRs
-    * Participating in CNCF maintainer activities
-    * Determining strategy and policy for the project
-    * Participating in, and leading, community meetings
-* Requirements
-    * Experience as a Reviewer for at least [TODO: Number] months
-    * Demonstrates a broad knowledge of the project across multiple areas
-    * Is able to exercise judgment for the good of the project, independent of their employer, friends, or team
-    * Mentors other contributors
-    * Can commit to spending at least [TODO: Number] hours per month working on the project
+    * TBD
+* Requirements:
+    * TBD
 * Additional privileges:
-    * Approve PRs to any area of the project
-    * Represent the project in public as a Maintainer
-    * Communicate with the CNCF on behalf of the project
-    * Have a vote in Maintainer decision-making meetings
+    * TBD
     
 
 Process of becoming a maintainer:
