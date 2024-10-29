@@ -92,7 +92,7 @@ An Organization Member must meet the responsibilities and has the requirements o
         * Become responsible for a key project management area,
         * Or some equivalent combination or contribution
  -->
-    * Must have been contributing for at least [TODO: Number] months
+    * Must have been contributing for at least 3 months
     * Must be actively contributing to at least one project area
     * Must have two sponsors who are also Organization Members, at least one of whom does not work for the same employer
     * [TODO: other requirements] <!--TODO: such as repository access or enabling 2FA on their GitHub account -->
