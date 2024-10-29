@@ -84,12 +84,14 @@ An Organization Member must meet the responsibilities and has the requirements o
 * Responsibilities include:
     * Regularly contributes to code, documentation, issues, and discussions. <!-- as demonstrated by having at least [TODO: Number] [TODO: Metric] a year, as demonstrated by [TODO: contributor metrics source].  Example: "as demonstrated by having at least 50 GitHub contributions per year, as shown by Devstats"-->
 * Requirements:
+<!--TODO
     * Must have successful contributions to the project, including at least one of the following:
         * [TODO: Number] accepted PRs,
         * Reviewed [TODO: Number] PRs,
         * Resolved and closed [TODO: Number] Issues,
         * Become responsible for a key project management area,
         * Or some equivalent combination or contribution
+ -->
     * Must have been contributing for at least [TODO: Number] months
     * Must be actively contributing to at least one project area
     * Must have two sponsors who are also Organization Members, at least one of whom does not work for the same employer
