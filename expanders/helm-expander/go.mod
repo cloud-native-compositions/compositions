@@ -1,11 +1,11 @@
-module github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/expander/helm-expander
+module github.com/cloud-native-compositions/compositions/expander/helm-expander
 
 go 1.22.4
 
 toolchain go1.23.2
 
 require (
-	github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition v0.0.0-20240701212443-eb03df209286
+	github.com/cloud-native-compositions/compositions/composition v0.0.0-20240701212443-eb03df209286
 	google.golang.org/grpc v1.64.1
 	k8s.io/apimachinery v0.29.1
 	sigs.k8s.io/controller-runtime v0.17.2

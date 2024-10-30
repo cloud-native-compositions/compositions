@@ -1,11 +1,11 @@
-module github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/expander/cel-expander
+module github.com/cloud-native-compositions/compositions/expander/cel-expander
 
 go 1.22.4
 
 toolchain go1.23.2
 
 require (
-	github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition v0.0.0-20240701212443-eb03df209286
+	github.com/cloud-native-compositions/compositions/composition v0.0.0-20240701212443-eb03df209286
 	github.com/google/cel-go v0.18.2
 	github.com/wzshiming/easycel v0.6.0
 	google.golang.org/grpc v1.64.1

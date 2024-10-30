@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	compositionv1alpha1 "github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition/api/v1alpha1"
+	compositionv1alpha1 "github.com/cloud-native-compositions/compositions/composition/api/v1alpha1"
 	"github.com/google/go-cmp/cmp"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"

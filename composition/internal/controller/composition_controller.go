@@ -25,8 +25,8 @@ import (
 	"strings"
 	"sync"
 
-	compositionv1alpha1 "github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition/api/v1alpha1"
-	pb "github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition/proto"
+	compositionv1alpha1 "github.com/cloud-native-compositions/compositions/composition/api/v1alpha1"
+	pb "github.com/cloud-native-compositions/compositions/composition/proto"
 	"github.com/go-logr/logr"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

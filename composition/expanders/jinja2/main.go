@@ -25,7 +25,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	pb "github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition/proto"
+	pb "github.com/cloud-native-compositions/compositions/composition/proto"
 	"google.golang.org/grpc"
 	"tailscale.com/atomicfile"
 )

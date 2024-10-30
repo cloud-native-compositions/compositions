@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	pb "github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition/proto"
+	pb "github.com/cloud-native-compositions/compositions/composition/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"sigs.k8s.io/yaml"

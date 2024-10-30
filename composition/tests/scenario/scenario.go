@@ -23,8 +23,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition/tests/cluster"
-	"github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition/tests/testclient"
+	"github.com/cloud-native-compositions/compositions/composition/tests/cluster"
+	"github.com/cloud-native-compositions/compositions/composition/tests/testclient"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/declarative/pkg/manifest"

@@ -19,8 +19,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition/tests/scenario"
-	"github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition/tests/utils"
+	"github.com/cloud-native-compositions/compositions/composition/tests/scenario"
+	"github.com/cloud-native-compositions/compositions/composition/tests/utils"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )

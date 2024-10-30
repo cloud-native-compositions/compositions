@@ -26,8 +26,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	pb "github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition/proto"
-	helmconfigurationv1alpha1 "github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/expander/helm-expander/api/v1alpha1"
+	pb "github.com/cloud-native-compositions/compositions/composition/proto"
+	helmconfigurationv1alpha1 "github.com/cloud-native-compositions/compositions/expander/helm-expander/api/v1alpha1"
 	"google.golang.org/grpc"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/yaml"

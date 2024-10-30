@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"strings"
 
-	compositionv1alpha1 "github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition/api/v1alpha1"
-	"github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition/pkg/cel"
+	compositionv1alpha1 "github.com/cloud-native-compositions/compositions/composition/api/v1alpha1"
+	"github.com/cloud-native-compositions/compositions/composition/pkg/cel"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

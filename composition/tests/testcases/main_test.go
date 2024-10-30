@@ -20,8 +20,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition/tests/cluster"
-	"github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition/tests/cluster/kind"
+	"github.com/cloud-native-compositions/compositions/composition/tests/cluster"
+	"github.com/cloud-native-compositions/compositions/composition/tests/cluster/kind"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )

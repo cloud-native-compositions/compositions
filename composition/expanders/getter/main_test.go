@@ -23,8 +23,8 @@ import (
 	"strings"
 	"testing"
 
-	compositionv1alpha1 "github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition/api/v1alpha1"
-	pb "github.com/GoogleCloudPlatform/k8s-config-connector/experiments/compositions/composition/proto"
+	compositionv1alpha1 "github.com/cloud-native-compositions/compositions/composition/api/v1alpha1"
+	pb "github.com/cloud-native-compositions/compositions/composition/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
