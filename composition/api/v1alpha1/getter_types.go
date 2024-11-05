@@ -29,25 +29,32 @@ type ResourceRef struct {
 	// resource: ServiceIdentity.serviceusage.cnrm.cloud.google.com/v1beta1//sqladmin.googleapis.com
 
 	// OPTION 2
-	Group    string `json:"group,omitempty"`
-	Version  string `json:"version,omitempty"`
+	Group   string `json:"group,omitempty"`
+	Version string `json:"version,omitempty"`
+	//+kubebuilder:validation:Required
 	Resource string `json:"resource"`
-	Kind     string `json:"kind"`
+	//+kubebuilder:validation:Required
+	Kind string `json:"kind"`
 
-	// OneOf validation needed for Name and NameSuffix in CRD Definition
+	// OneOf validation added for Name and NameSuffix
 	Name       string `json:"name,omitempty"`
 	NameSuffix string `json:"nameSuffix,omitempty"`
 }
 
 type FieldRef struct {
+	//+kubebuilder:validation:Required
 	Path string `json:"path"`
-	As   string `json:"as"`
+	//+kubebuilder:validation:Required
+	As string `json:"as"`
 }
 
 type ValuesFrom struct {
-	Name        string      `json:"name"`
+	//+kubebuilder:validation:Required
+	Name string `json:"name"`
+	//+kubebuilder:validation:Required
 	ResourceRef ResourceRef `json:"resourceRef"`
-	FieldRef    []FieldRef  `json:"fieldRef"`
+	//+kubebuilder:validation:Required
+	FieldRef []FieldRef `json:"fieldRef"`
 }
 
 // GetterConfigurationSpec defines the desired state of GetterConfiguration

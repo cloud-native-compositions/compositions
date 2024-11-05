@@ -94,6 +94,7 @@ spec:
                       default: latest
                       type: string
                   required:
+                  - name
                   - type
                   type: object
                 minItems: 1

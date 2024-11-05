@@ -25,7 +25,7 @@ import (
 // ContextSpec defines the desired state of Context
 type ContextSpec struct {
 	// Project is passed to the expander.
-	Project string `json:"project,omitempty" protobuf:"bytes,1,opt,name=project"`
+	Project string `json:"project,omitempty"`
 }
 
 // ContextStatus defines the observed state of Context
@@ -37,7 +37,8 @@ type ContextStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// Context is the Schema for the contexts API
+// Context is used to set a set of common parameters per namespace.
+// Currently it includes a string that identifies a cloud project
 type Context struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

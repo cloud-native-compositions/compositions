@@ -17,8 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"fmt"
-
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -43,6 +41,7 @@ type Jinja2 struct {
 
 // ConfigReference - For BYO Expanders, we can extend it
 type ConfigReference struct {
+	//+kubebuilder:validation:Required
 	Name      string `json:"name"`
 	Namespace string `json:"namespace,omitempty"`
 }
@@ -52,11 +51,12 @@ type ExpanderConfig struct {
 	Jinja2 *Jinja2 `json:"jinja2,omitempty"`
 	// For BYO Expanders use generic template or ref for external config
 	Template  string           `json:"template,omitempty"`
-	Reference *ConfigReference `json:"configref,omitempty"`
+	ConfigRef *ConfigReference `json:"configref,omitempty"`
 }
 
 type Expander struct {
-	Name string `json:"name,omitempty"`
+	//+kubebuilder:validation:Required
+	Name string `json:"name"`
 
 	// Type indicates what expander to use
 	//   jinja - jinja2 expander
@@ -69,19 +69,6 @@ type Expander struct {
 	// TODO (barney-s): Make ConfigReference the only way to specify and dont have any inline expander configs
 	//  This would make the UX experience uniform.
 	ExpanderConfig `json:""`
-}
-
-type Sinc struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-
-	// NOTE: Tighten the Composition API to include fields that are used in the controller
-	//  As we add features we can uncomment these fields
-
-	//ConfigAPIGroup  string `json:"configAPIGroup,omitempty"`
-	//ConfigName      string `json:"configName,omitempty"`
-	//ConfigNamespace string `json:"configNamespace,omitempty"`
-	//Image           string `json:"image"`
 }
 
 type NamespaceMode string
@@ -97,12 +84,15 @@ const (
 
 // ReadyOn defines ready condition for a GVK
 type ReadyOn struct {
-	Group     string `json:"group"`
-	Version   string `json:"version,omitempty"`
+	//+kubebuilder:validation:Required
+	Group   string `json:"group"`
+	Version string `json:"version,omitempty"`
+	//+kubebuilder:validation:Required
 	Kind      string `json:"kind"`
 	Name      string `json:"name,omitempty"`
 	Namespace string `json:"namespace,omitempty"`
-	Ready     string `json:"readyIf"`
+	//+kubebuilder:validation:Required
+	Ready string `json:"readyIf"`
 }
 
 // CompositionSpec defines the desired state of Composition
@@ -185,31 +175,6 @@ type CompositionList struct {
 // Status helpers
 func (s *CompositionStatus) ClearCondition(condition ConditionType) {
 	meta.RemoveStatusCondition(&s.Conditions, string(condition))
-}
-
-// Validation
-func (s *Composition) Validate() bool {
-	// Several of these validations should br CEL rules on the composition CRD
-	// However for now they help me shape the controller.
-	s.Status.ClearCondition(ValidationFailed)
-	// Validate Expanders
-	message := ""
-	for expanderIndex, expander := range s.Spec.Expanders {
-		if expander.Name == "" {
-			message += fmt.Sprintf(".spec.expanders[%d] missing name; ", expanderIndex)
-		}
-	}
-	if message != "" {
-		s.Status.Conditions = append(s.Status.Conditions, metav1.Condition{
-			LastTransitionTime: metav1.Now(),
-			Message:            message,
-			Reason:             "ExpanderValidationFailed",
-			Type:               string(ValidationFailed),
-			Status:             metav1.ConditionTrue,
-		})
-		return false
-	}
-	return true
 }
 
 func init() {

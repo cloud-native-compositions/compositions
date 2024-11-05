@@ -37,13 +37,14 @@ type PlanSpec struct {
 type HealthType string
 
 const (
-	HEALTHY   HealthType = "Healthy"
-	UNHEALTHY HealthType = "Unhealthy"
+	Healthy   HealthType = "Healthy"
+	Unhealthy HealthType = "Unhealthy"
 )
 
 type ResourceStatus struct {
-	Group     string     `json:"group,omitempty"`
-	Version   string     `json:"version,omitempty"`
+	Group   string `json:"group,omitempty"`
+	Version string `json:"version,omitempty"`
+	//+kubebuilder:validation:Required
 	Kind      string     `json:"kind"`
 	Namespace string     `json:"namespace,omitempty"`
 	Name      string     `json:"name,omitempty"`

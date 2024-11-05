@@ -41,6 +41,7 @@ type FacadeSpec struct {
 	// Simple Schema
 	SimpleSchema *SimpleSchema `json:"simpleSchema,omitempty"`
 
+	//+kubebuilder:validation:Required
 	FacadeKind string `json:"facadeKind"`
 }
 

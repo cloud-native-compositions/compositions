@@ -37,9 +37,12 @@ const (
 )
 
 type ExpanderConfigGVK struct {
-	Group   string `json:"group"`
+	//+kubebuilder:validation:Required
+	Group string `json:"group"`
+	//+kubebuilder:validation:Required
 	Version string `json:"version"`
-	Kind    string `json:"kind"`
+	//+kubebuilder:validation:Required
+	Kind string `json:"kind"`
 }
 
 // ExpanderVersionSpec defines the desired state of ExpanderVersion
@@ -51,6 +54,7 @@ type ExpanderVersionSpec struct {
 	Image string `json:"image,omitempty"`
 
 	// ValidVersions is a list of valid versions of the named expander
+	//+kubebuilder:validation:Required
 	ValidVersions []string `json:"validVersions"`
 
 	// Type indicates what sort of expander:
@@ -61,7 +65,7 @@ type ExpanderVersionSpec struct {
 	Type ExpanderType `json:"type"`
 
 	// ExpanderConfig GVK
-	Config ExpanderConfigGVK `json:"config,omitempty"`
+	Config ExpanderConfigGVK `json:"config"`
 }
 
 // ExpanderVersionStatus defines the observed state of ExpanderVersion

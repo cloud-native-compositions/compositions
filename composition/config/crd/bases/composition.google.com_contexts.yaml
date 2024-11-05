@@ -31,7 +31,9 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Context is the Schema for the contexts API
+        description: |-
+          Context is used to set a set of common parameters per namespace.
+          Currently it includes a string that identifies a cloud project
         properties:
           apiVersion:
             description: |-

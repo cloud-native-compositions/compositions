@@ -560,14 +560,14 @@ func (r *ExpanderReconciler) evaluateAndSavePlan(ctx context.Context, logger log
 	// marshall expander config
 	// read Expander config from  in cr.namespace
 	var configBytes []byte
-	if expander.Reference != nil {
+	if expander.ConfigRef != nil {
 		expanderconfigcr := unstructured.Unstructured{}
 		expanderconfigcr.SetGroupVersionKind(schema.GroupVersionKind{
 			Group:   ev.Spec.Config.Group,
 			Version: ev.Spec.Config.Version,
 			Kind:    ev.Spec.Config.Kind,
 		})
-		expanderconfigNN := types.NamespacedName{Namespace: expander.Reference.Namespace, Name: expander.Reference.Name}
+		expanderconfigNN := types.NamespacedName{Namespace: expander.ConfigRef.Namespace, Name: expander.ConfigRef.Name}
 		if err := r.Get(ctx, expanderconfigNN, &expanderconfigcr); err != nil {
 			logger.Error(err, "unable to fetch ExpanderConfig CR", "expander config", expanderconfigNN)
 			return values, updated, "GetExpanderConfigFailed", err

@@ -118,11 +118,7 @@ func (r *CompositionReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	logger = logger.WithName(composition.Name).WithName(fmt.Sprintf("%d", composition.Generation))
 
 	composition.Status.ClearCondition(compositionv1alpha1.Error)
-	logger.Info("Validating Compostion object")
-	if !composition.Validate() {
-		logger.Info("Validation Failed")
-		return ctrl.Result{}, fmt.Errorf("Validation failed")
-	}
+	composition.Status.ClearCondition(compositionv1alpha1.ValidationFailed)
 
 	logger.Info("Validating expander configs")
 	if err := r.validateExpanders(ctx, logger, &composition); err != nil {
@@ -221,19 +217,19 @@ func (r *CompositionReconciler) validateExpanderConfig(ctx context.Context, logg
 	// marshall expander config
 	// read Expander config from  in cr.namespace
 	var configBytes []byte
-	if expander.Reference != nil {
-		expanderconfigcr := unstructured.Unstructured{}
-		expanderconfigcr.SetGroupVersionKind(schema.GroupVersionKind{
+	if expander.ConfigRef != nil {
+		expanderConfigcr := unstructured.Unstructured{}
+		expanderConfigcr.SetGroupVersionKind(schema.GroupVersionKind{
 			Group:   ev.Spec.Config.Group,
 			Version: ev.Spec.Config.Version,
 			Kind:    ev.Spec.Config.Kind,
 		})
-		expanderconfigNN := types.NamespacedName{Namespace: expander.Reference.Namespace, Name: expander.Reference.Name}
-		if err := r.Get(ctx, expanderconfigNN, &expanderconfigcr); err != nil {
-			logger.Error(err, "unable to fetch ExpanderConfig CR", "expander config", expanderconfigNN)
+		expanderConfigNN := types.NamespacedName{Namespace: expander.ConfigRef.Namespace, Name: expander.ConfigRef.Name}
+		if err := r.Get(ctx, expanderConfigNN, &expanderConfigcr); err != nil {
+			logger.Error(err, "unable to fetch ExpanderConfig CR", "expander config", expanderConfigNN)
 			return "GetExpanderConfigFailed", err
 		}
-		configBytes, err = json.Marshal(expanderconfigcr.Object)
+		configBytes, err = json.Marshal(expanderConfigcr.Object)
 		if err != nil {
 			logger.Error(err, "failed to marshal ExpanderConfig Object")
 			return "MarshallExpanderConfigFailed", err

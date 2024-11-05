@@ -78,8 +78,7 @@ spec:
                         kind:
                           type: string
                         name:
-                          description: OneOf validation needed for Name and NameSuffix
-                            in CRD Definition
+                          description: OneOf validation added for Name and NameSuffix
                           type: string
                         nameSuffix:
                           type: string

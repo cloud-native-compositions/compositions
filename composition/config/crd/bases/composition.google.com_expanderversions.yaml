@@ -92,6 +92,7 @@ spec:
                   type: string
                 type: array
             required:
+            - config
             - type
             - validVersions
             type: object
