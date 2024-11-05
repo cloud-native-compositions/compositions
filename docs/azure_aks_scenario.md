@@ -14,7 +14,7 @@ Here is an example of an attached AKS cluster. (The complete sample is uploaded 
 
 The platform administrator would create the composition in our sample:
 
-```
+```shell
 kubectl apply -f \
 https://raw.githubusercontent.com/cloud-native-compositions/compositions/main/samples/AttachedAKS/01-composition.yaml
 ```
@@ -44,7 +44,7 @@ Here are the details for how to create the separate identity:
 
 1. Create a new GCP service account for the user team:
 
-```
+```shell
 TEAM_NAME=<a name for the user team> # example: team-aks
 export NAMESPACE=${TEAM_NAME?} # you can choose a different name
 TEAM_GCP_SA_NAME="${TEAM_NAME?}" # you can choose a different name
@@ -83,7 +83,7 @@ gcloud iam service-accounts add-iam-policy-binding ${TEAM_GSA_EMAIL?} \
 
 2. Create a new kubernetes namespace for the user team, then assign the GCP and Azure identity to the namespace:
 
-```
+```shell
 cat <<EOF > /tmp/aks_context.yaml
 # Create a namespace for user team
 apiVersion: v1
@@ -125,7 +125,7 @@ The following will create an instance of the composition defined by the platform
 - An AKS cluster  
 - A GCP attached cluster object
 
-```
+```shell
 AKS_NAME= <name>  # The name you want to give the attached cluster.
 NAMESPACE= <namespace>  # The same namespace as was used by the platform team in step 2A
 ATTACHED_REGION= <region>  # The GCP region in which to create the attached cluster
@@ -157,7 +157,7 @@ You can view the list of supported GCP regions for Attached clusters [here](http
 
 You can get the list of all supported Attached platform versions by running:
 
-```
+```shell
 gcloud container attached get-server-config --location=${ATTACHED_REGION?}
 ```
 
@@ -175,7 +175,7 @@ GCP provides a `gcloud` command to generate the attached manifest for the attach
 
 Here  are the steps.
 
-```
+```shell
 NAMESPACE= ... # The namespace used for the AttachedAKS CR in step 1
 AKS_NAME=$(kubectl get AttachedAKS -n ${NAMESPACE?} \
   -o=jsonpath='{.items[0].metadata.name}')
@@ -214,7 +214,7 @@ A detailed block of information about the attached resource will be returned.
 
 Once the cluster is attached, you can connect to it by running the following command:
 
-```
+```shell
 # Obtain Google credentials to log into the cluster using the current gcloud user:
 gcloud container attached clusters get-credentials ${AKS_NAME?} \
   --location=${ATTACHED_REGION?} 
@@ -228,7 +228,7 @@ kubectl cluster-info
 
 Switch your kubectl context back to the Config Controller context, then run:
 
-```
+```shell
 kubectl delete attachedakses.idp.mycompany.com ${AKS_NAME?} -n ${NAMESPACE?}
 
 # verify deletion of attached cluster

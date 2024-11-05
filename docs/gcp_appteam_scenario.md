@@ -6,7 +6,7 @@ The intent of this scenario is to show how an infrastructure team can use Compos
 
 The composition uses `AppTeam` CRD as its Facade (input schema). The facade CRD was created using [kubebuilder](https://book.kubebuilder.io/cronjob-tutorial/new-api). A developer using the `AppTeam`  CRD would not need to have any  knowledge of how the underlying KCC objects are defined. 
 
-```py
+```yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -41,7 +41,7 @@ spec:
 The Composition and its corresponding Facade definition can be found [here](https://github.com/cloud-native-compositions/compositions/blob/main/samples/AppTeam/composition/appteam.yaml).   
 A preview of the `appteams` composition definition:
 
-```py
+```yaml
 apiVersion: composition.google.com/v1alpha1
 kind: Composition
 metadata:
@@ -81,7 +81,7 @@ spec:
 
 Clone the [repo](https://github.com/cloud-native-compositions/compositions) to get the samples. Apply the `composition/appteam.yaml` to create the Composition and its corresponding facade CRD.
 
-```
+```shell
 git clone https://github.com/cloud-native-compositions/compositions.git
 
 cd samples/AppTeam
@@ -90,7 +90,7 @@ kubectl apply -f composition/appteam.yaml
 
 Check if the composition is installed successfully. You should see something like this.
 
-```
+```shell
 ❯ kubectl get composition appteams -o json | jq .status
 {
   "stages": {
@@ -126,7 +126,7 @@ Check if the composition is installed successfully. You should see something lik
 
 The composition can be used by creating an instance of the `AppTeam` CRD. 
 
-```py
+```yaml
 TEAM_NAME=team-$(tr -dc a-z </dev/urandom | head -c 6)
 GCP_FOLDER=  # "00000000000" Set this
 GCP_BILLING= # "000000-000000-000000" Set this
@@ -166,7 +166,7 @@ Changing the AppTeam facade or the Composition objects, triggers a reconcile and
 
 Verify the KCC resources are created and reconciled successfully. Look at the `READY` and `STATUS` columns of the command output. They should be `True` and `UpToDate` respectively.
 
-```
+```yaml
 # KCC objects in config-control namespace
 kubectl get iamserviceaccount kcc-${TEAM_NAME?} -n config-control
 kubectl get iampartialpolicy -n config-control\
@@ -185,7 +185,7 @@ kubectl get configconnectorcontext -n ${TEAM_NAME?}
 
 Also inspect the `Plan` object created for the `appteams` instance. This is useful to debug if something goes amiss:
 
-```
+```yaml
 # Plan object corresponding to the appteam instance
 # The plan object name is obtained by joining 'facade crd' and 'cr.name'
 kubectl get plan -n config-control appteams-${TEAM_NAME?} -o yaml | less

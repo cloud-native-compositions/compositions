@@ -39,13 +39,13 @@ spec:
     role: Developer
 ```
 
-Such an object that abstracts away the underlying complexity and provides the input to a Composition is called a Facade. Facade is defined as a CRD that parametrizes the Composition.
+Such an object that abstracts away the underlying complexity and provides the input to a Composition is called a Facade. A Facade is a CRD that captures the inputs from the user which are then used in the Composition.
 
 ## Composition
 
 Let’s define a Composition that uses the Facade and creates a web-server Deployment, Service and a Configmap. We shall use `jinja2` based templating in this example.   
    
-A preview of such a  [composition](https://github.com/cloud-native-compositions/compositions/tree/main/samples/FirstComposition) looks like this:
+A preview of such a [composition](https://github.com/cloud-native-compositions/compositions/tree/main/samples/FirstComposition) looks like this:
 
 ```yaml
 apiVersion: composition.google.com/v1alpha1
@@ -153,13 +153,13 @@ The composition uses `TeamPage` CRD as its Facade (input schema). The facade CRD
 
 Create scaffolding for the `TeamPage` CRD
 
-```
+```shell
 kubebuilder create api --group idp --version v1alpha1 --kind TeamPage --controller=false --resource
 ```
 
 Edit the golang file to add the `spec` fields
 
-```
+```shell
 # choose editor of your choice
 vim api/v1alpha1/teampage_types.go
 ```
@@ -181,7 +181,7 @@ type TeamPageSpec struct {
 
 The Generated CRD should look like this:
 
-```py
+```yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -199,7 +199,7 @@ spec:
 
 Clone the [repo](https://github.com/cloud-native-compositions/compositions) to get the samples. Apply the `composition/teampage.yaml` to create the Composition and its corresponding facade CRD.
 
-```
+```shell
 # if not cloned already
 git clone https://github.com/cloud-native-compositions/compositions.git
 
@@ -209,7 +209,7 @@ kubectl apply -f composition/teampage.yaml
 
 Check if the composition is installed successfully. You should see something like this.
 
-```
+```shell
 ❯ kubectl get composition team-page -o json | jq ".status"
 {
   "stages": {
@@ -227,14 +227,14 @@ Once the Composition and the Facade which specifies the input schema are install
 
 The first step is to create a namespace for the team. This namespace is where the `TeamPage`  would be created.
 
-```
+```shell
 export NAMESPACE=my-team
 kubectl create namespace ${NAMESPACE?}
 ```
 
 Next we create a `TeamPage` instance in the namespace:
 
-```py
+```shell
 kubectl apply -f - <<EOF
 apiVersion: idp.mycompany.com/v1alpha1
 kind: TeamPage
@@ -256,7 +256,7 @@ EOF
 
 Verify the k8s objects are created successfully:
 
-```
+```shell
 kubectl get deployment -n ${NAMESPACE?}
 kubectl get service -n ${NAMESPACE?}
 kubectl get configmap -n ${NAMESPACE?}
@@ -264,7 +264,7 @@ kubectl get configmap -n ${NAMESPACE?}
 
 Check the web server:
 
-```
+```shell
 kubectl port-forward service/team-landing-landing -n my-team 5555:80
 
 # seperate terminal, you should see the web page being served correctly

@@ -10,7 +10,7 @@ The platform admin will create a composition called `sqlha`, which defines all r
 
 The composition uses `CloudSQL` CRD as its Facade (the developer interface / input). The facade CRD was created using [kubebuilder](https://book.kubebuilder.io/cronjob-tutorial/new-api) (this will be explained in detailed in Chapter 8). A developer using the `CloudSQL`  CRD would not need to have any knowledge of how the underlying KCC objects are defined. 
 
-```py
+```yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -29,7 +29,7 @@ spec:
 The composition that corresponds to the Facade  
 A preview of the `sqlha` composition definition:
 
-```py
+```yaml
 apiVersion: composition.google.com/v1alpha1
 kind: Composition
 metadata:
@@ -71,7 +71,7 @@ spec:
 
 Clone the [repo](https://github.com/cloud-native-compositions/compositions) to get the samples. Apply the `composition/hasql.yaml` to create the Composition and its corresponding facade CRD.
 
-```
+```shell
 git clone https://github.com/cloud-native-compositions/compositions.git
 
 cd samples/CloudSQL
@@ -80,7 +80,7 @@ kubectl apply -f composition/hasql.yaml
 
 Check if the composition is installed successfully. You should see something like this.
 
-```
+```shell
 ❯ kubectl get composition sqlha -o json | jq .status
 {
   "stages": {
@@ -108,7 +108,7 @@ Check if the composition is installed successfully. You should see something lik
 
 The composition can be used by creating an instance of the `CloudSQL` CRD. 
 
-```py
+```shell
 NAMESPACE=config-control
 
 kubectl apply -f - <<EOF
@@ -140,7 +140,7 @@ Composition-engine reconciles the  `CloudSQL` CR and performs the  following act
 
 Give it a couple of minutes and then verify if the KCC resources are created and reconciled successfully. Look at the `READY` and `STATUS` columns of the command output. They should be `True` and `UpToDate` respectively.
 
-```
+```shell
 # Verify KCC objects exist
 kubectl get  serviceidentity -n ${NAMESPACE?}
 kubectl get  sqlinstances.sql.cnrm.cloud.google.com -n ${NAMESPACE?}
@@ -155,7 +155,7 @@ kubectl get services.serviceusage.cnrm.cloud.google.com -n ${NAMESPACE?}
 
 Sample output:
 
-```
+```shell
 ❯ ./get_cloudsql.sh ${NAMESPACE?}
 
 ServiceIdentity ----------------------------------------
@@ -193,7 +193,7 @@ sqladmin.googleapis.com       19m   True    UpToDate   19m
 
 Also inspect the `Plan` object created for the `cloudsqls` instance. The `Plan` object is an intermediate API that is used to track expanded resources and their status. This is useful to debug if something goes amiss:
 
-```
+```shell
 # Plan object corresponding to the appteam instance
 #                              >>>facadecrd-cr.name<<<
 kubectl get plan -n config-control cloudsqls-myteam -o yaml

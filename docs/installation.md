@@ -27,7 +27,7 @@ TODO
 
 Once the kubernetes cluster is ready, install Compositions. This step can be skipped for Config Controller cluster. 
 
-```
+```shell
 # TODO Change to CNC repo path once code is merged in
 MANIFEST_URL=https://raw.githubusercontent.com/GoogleCloudPlatform/k8s-config-connector/master/experiments/compositions/composition/release/manifest.yaml
 
@@ -40,7 +40,7 @@ Context is an optional config object that is created in each namespace we want t
 It is required for those compositions which use `context.spec.project` in their expanders.
 For example if KCC was setup in `config-control` namespace:
 
-```
+```shell
 export NAMESPACE=<where composition is to be used>
 export PROJECT_ID=<replace with GCP project name/id>
 

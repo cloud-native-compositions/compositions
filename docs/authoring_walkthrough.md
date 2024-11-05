@@ -47,7 +47,7 @@ Define your cloud resources using  [KCC](https://cloud.google.com/config-connect
 
 For example, the ServiceIdentity resource would be written as follows: 
 
-```
+```yaml
 apiVersion: serviceusage.cnrm.cloud.google.com/v1beta1
 kind: ServiceIdentity
 metadata:
@@ -60,7 +60,7 @@ spec:
 
 Similarly a key ring can be defined like this:
 
-```
+```yaml
 apiVersion: kms.cnrm.cloud.google.com/v1beta1
 kind: KMSKeyRing
 metadata:
@@ -93,7 +93,7 @@ The Facade CRDs can be generated from Go code using [kubebuilder](https://book.k
 
 1. Create project scaffolding
 
-```
+```shell
 mkdir -p ~/projects/idp
 cd ~/projects/idp
 kubebuilder init --domain mycompany.com --repo mycompany.com/idp
@@ -101,13 +101,13 @@ kubebuilder init --domain mycompany.com --repo mycompany.com/idp
 
 2. Create scaffolding for the `CloudSQL` CRD
 
-```
+```shell
 kubebuilder create api --group idp --version v1alpha1 --kind CloudSQL --controller=false --resource
 ```
 
 3. Edit the golang file to add the fields
 
-```
+```shell
 # choose editor of your choice
 vim api/v1alpha1/cloudsql_types.go
 
@@ -121,7 +121,7 @@ vim api/v1alpha1/cloudsql_types.go
 
 4. Generate the CRD file
 
-```
+```shell
 make manifests
 # The CRD should be generated in this file:
 # config/crd/bases/idp.mycompany.com_cloudsqls.yaml
@@ -129,7 +129,7 @@ make manifests
 
 5. Apply the generated CRD to your cluster
 
-```
+```shell
 kubectl apply -f config/crd/bases/idp.mycompany.com_cloudsqls.yaml
 ```
 
@@ -139,7 +139,7 @@ kubectl apply -f config/crd/bases/idp.mycompany.com_cloudsqls.yaml
 
 Create the `sqlha` Composition by using KCC objects from [step 2](#step-2:-writing-the-managed-resources). We set the `.spec.inputAPIGroup` to `cloudsqls.idp.mycompany.com` to illustrate that this is how we define the link between the Composition and the Facade. 
 
-```py
+```yaml
 apiVersion: composition.google.com/v1alpha1
 kind: Composition
 metadata:
@@ -191,7 +191,7 @@ Every namespace can have the optional `Context` object, that is available as `co
 
 Here is an example of how to write the context for your composition. The context object is created per namespace. This example uses the namespace `clearing-service` as well as the GCP project `clearing-service`.
 
-```py
+```yaml
 apiVersion: composition.google.com/v1alpha1
 kind: Context
 metadata:
@@ -216,7 +216,7 @@ The jinja expander exposes these as templating variables:
 **Example parameterized KCC resource**  
 Here is the Jinja templating for the *ServiceIdentity* resource from Step 2:
 
-```py
+```yaml
  - type: jinja2
     name: block2
     template: |
@@ -247,7 +247,7 @@ Use a `Getter` to extract any such dynamic values.
 
 Here is an example `GetterConfiguration` that extracts the Service identity email:
 
-```py
+```yaml
 apiVersion: composition.google.com/v1alpha1
 kind: GetterConfiguration
 metadata:
@@ -269,7 +269,7 @@ spec:
 
 The `GetterConfiguration` is used in the Composition like this:
 
-```py
+```yaml
 apiVersion: composition.google.com/v1alpha1
 kind: Composition
 metadata:
@@ -322,7 +322,7 @@ The `ServiceIdentity’s .status.email` reconciled in state 2 is extracted by th
 
 Now that you have written your composition and facade you can apply them to the cluster, using the example available [repo](https://github.com/cloud-native-compositions/compositions).
 
-```
+```shell
 # if not cloned already
 git clone https://github.com/cloud-native-compositions/compositions.git
 
@@ -332,7 +332,7 @@ kubectl apply -f composition/hasql.yaml
 
 Check if the composition is installed successfully. You should see something like this. Any jinja template parsing errors would be surfaced in the status at this point as part of validation.
 
-```
+```shell
 ❯ kubectl get composition sqlha -o json | jq .status
 {
   "stages": {
@@ -361,7 +361,7 @@ Check if the composition is installed successfully. You should see something lik
 Now that the Composition has been applied, a user can create an instance of the composition.   
 The example below shows the CloudSQL Facade defined in Step 3 to create CloudSQL instances in us-east1 and us-central1, with the us-east1 being the primary. 
 
-```py
+```shell
 kubectl apply -f - <<EOF
 apiVersion: idp.mycompany.com/v1alpha1
 kind: CloudSQL
@@ -380,7 +380,7 @@ EOF
 
 Verify the KCC resources are created and reconciled successfully. Look at the `READY` and `STATUS` columns of the command output. They should be `True` and `UpToDate` respectively.
 
-```
+```shell
 NAMESPACE=config-control
 # KCC objects in config-control namespace
 kubectl get serviceidentity -n ${NAMESPACE?}
@@ -396,7 +396,7 @@ kubectl get services.serviceusage.cnrm.cloud.google.com -n ${NAMESPACE?}
 
 Sample output:
 
-```
+```shell
 ❯ ./get_cloudsql.sh ${NAMESPACE?}
 
 ServiceIdentity ----------------------------------------
@@ -434,7 +434,7 @@ sqladmin.googleapis.com       19m   True    UpToDate   19m
 
 Also inspect the `Plan` object created for the `cloudsqls` instance. The `Plan` object is an intermediate API that is used to track expanded resources and their status. This is useful to debug if something goes amiss:
 
-```
+```shell
 # Plan object corresponding to the appteam instance
 #                              >>>facadecrd-cr.name<<<
 kubectl get plan -n config-control cloudsqls-myteam

@@ -1,11 +1,20 @@
 # Overview
 
 ## Goals
-Help infrastructure platform teams build self-service developer platforms that work consistently across clouds. We are doing this by creating a K8s-native way of orchestrating cloud services and kubernetes resources.
 
 
-## Customer Context
-we have found that our customers often use  ACK/ASO/KCC as an input into a custom-built internal developer platform (IDP). In nearly all cases, platform teams are maintaining a custom orchestration layer between the developer interface and the cloud resources. The orchestration layer is typically responsible for: 
+Empower platform teams to build K8s-native internal developer platforms that: 
+
+- Abstract and resolve complex interdependencies between resources, enabling end user self-service for platform teams and simplified resource management for small dev teams
+- Provide visibility into how an application is interacting with cloud services
+- Are easier and cheaper to build and maintain than existing solutions
+- Are compatible with any K8s operator, and existing packaging and templating tools
+- Leverage existing extensibility types (CRDs) as the API for interacting with cloud resources
+- Provide a Kubernetes-native way of orchestrating cloud services and Kubernetes resources.
+
+
+## User Context
+We have found that our customers often use [Aws Controllers for Kubernetes(ACK)](https://aws.amazon.com/blogs/containers/aws-controllers-for-kubernetes-ack/), [Azure Service Operator(ASO)](https://azure.github.io/azure-service-operator/), [GCP Config Connector(KCC)](https://cloud.google.com/config-connector/docs/overview) as an input into a custom-built internal developer platform (IDP). In nearly all cases, platform teams are maintaining a custom orchestration layer between the developer interface and the cloud resources. The orchestration layer is typically responsible for: 
 * RBAC
 * Resource creation ordering
 * Continuous reconciliation
@@ -20,7 +29,7 @@ There is no consistent K8s-native set of tooling used to build this orchestratio
 Compositions provides platform administrators with a framework for building  secure, qualified and reusable APIs for application teams to consume cloud resources in a self-service manner. Compositions can be used as the orchestration layer below an IDP, or they can be used directly by developers either through the K8s CLI or through a GitOps tool such as Config Sync or Argo CD. 
 
 ### How Compositions Work
-Compositions aims to provide a K8s-based solution for the problem of self-service infrastructure management. It is a set of Kubernetes APIs (CRDs) and controllers that allow any K8s resources, including KCC/ASO/ACK resources, to be logically grouped together and consumed as a single resource (a “composition”). By building compositions as K8s-native resources, compositions can use K8s features such as RBAC and continuous reconciliation. 
+Compositions aims to provide a K8s-based solution for the problem of self-service infrastructure management. It is a set of Kubernetes APIs (CRDs) and controllers that allow any K8s resources, including KCC/ASO/ACK resources, to be logically grouped together and consumed as a single resource (a “composition”). By building compositions as K8s-native resources, compositions use K8s features such as RBAC, continuous reconciliation and be monitored and administered the same way as other Kubernetes resources, which allows them to plug into existing workflows more easily
 
 Compositions will be built as OSS and will be available as a managed service through Config Controller. This private preview will use Config Controller to install all the components necessary to build compositions across Google Cloud, AWS, and Azure. 
 
@@ -29,7 +38,7 @@ Resources available to be managed through compositions by default are any resour
 ### Design Principles
 Some of the design principles we aim to adhere to are:
 * For life cycle management of cloud resources, delegate to lower level controllers for individual cloud resources.
-* Consistent experience across clouds.
+* Consistent experience across any Kubernetes resource, with a focus on KCC/ACK/ASO
 * Extensible architecture for meeting customer choice of configuration language, tooling.
 * Well defined core for quick development and Day 1 usage.
 * Automate, yet provide control and visibility.
@@ -41,7 +50,7 @@ The below diagram captures the overall architecture of compositions.
 ![image](architecture.png)
 
 ### Compositions Design
-A composition is a YAML file that defines a set of resources and how they relate to each other. The key concepts and APIs that will be used in this private preview are described below.
+A composition is a CRD that defines a set of resources and how they relate to each other. The key concepts and APIs that will be used in this private preview are described below.
 
 #### Key Concepts:
 

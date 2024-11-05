@@ -19,7 +19,7 @@ Let's look at a Composition that deploys a GCS Bucket. We want to allow easy con
 
 An example KCC manifest of such a bucket:
 
-```py
+```yaml
 apiVersion: storage.cnrm.cloud.google.com/v1beta1
 kind: StorageBucket
 metadata:
@@ -49,7 +49,7 @@ spec:
 
 A composition that parameterizes the KCC resource would look like this:
 
-```py
+```yaml
 apiVersion: composition.google.com/v1alpha1
 kind: Composition
 metadata:
@@ -110,7 +110,7 @@ The `cors-bucket` Composition
 
 Clone the [repo](https://github.com/cloud-native-compositions/compositions) to get the samples. Apply the `composition/cors-bucket.yaml` to create the Composition and its corresponding facade CRD.
 
-```
+```shell
 # if not cloned already
 git clone https://github.com/cloud-native-compositions/compositions.git
 
@@ -120,7 +120,7 @@ kubectl apply -f composition/cors-bucket.yaml
 
 Check if the composition is installed successfully. You should see something like this.
 
-```
+```shell
 ❯ kubectl get composition cors-bucket -o json | jq ".status"
 {
   "stages": {
@@ -138,13 +138,13 @@ The composition uses `CRBucket` CRD as its Facade. The Facade CRD can be created
 
 Create scaffolding for the `CRBucket` CRD
 
-```
+```shell
 kubebuilder create api --group idp --version v1alpha1 --kind CRBucket --controller=false --resource
 ```
 
 Edit the golang file to add the `spec` fields
 
-```
+```shell
 # choose editor of your choice
 vim api/v1alpha1/crbucket_types.go
 
@@ -158,7 +158,7 @@ vim api/v1alpha1/crbucket_types.go
 
 The Generated CRD should look like this:
 
-```py
+```yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -176,7 +176,7 @@ spec:
 
 Once the Composition and the Facade which specifies the input schema are installed, the composition is ready for use. A Team in your org creates an instance  of the `CRBucket` to use the composition.
 
-```py
+```shell
 kubectl apply -f - <<EOF
 apiVersion: idp.mycompany.com/v1
 kind: CRBucket
@@ -193,13 +193,13 @@ EOF
 
 Verify the KCC bucket is created and reconciled successfully:
 
-```
+```shell
 kubectl get storagebucket -n config-control
 ```
 
 Expected output:
 
-```
+```shell
 ❯ kubectl get storagebucket -n config-control
 
 NAME                                  AGE   READY   STATUS     STATUS AGE
@@ -208,7 +208,7 @@ compositions-barni-2-example-bucket   22s   True    UpToDate   21s
 
 Also inspect the `Plan` object created for the `crbuckets` instance. This is useful to debug if something goes amiss:
 
-```
+```shell
 # Plan object corresponding to the crbuckets instance
 #                              >>>facadecrd-cr.name<<<
 kubectl get plan -n config-control crbuckets-example-bucket -o yaml | less
