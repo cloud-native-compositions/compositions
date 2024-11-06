@@ -14,7 +14,7 @@ Empower platform teams to build K8s-native internal developer platforms that:
 
 
 ## User Context
-We have found that our customers often use [Aws Controllers for Kubernetes(ACK)](https://aws.amazon.com/blogs/containers/aws-controllers-for-kubernetes-ack/), [Azure Service Operator(ASO)](https://azure.github.io/azure-service-operator/), [GCP Config Connector(KCC)](https://cloud.google.com/config-connector/docs/overview) as an input into a custom-built internal developer platform (IDP). In nearly all cases, platform teams are maintaining a custom orchestration layer between the developer interface and the cloud resources. The orchestration layer is typically responsible for: 
+We have found that our customers often use [Aws Controllers for Kubernetes(ACK)](https://aws.amazon.com/blogs/containers/aws-controllers-for-kubernetes-ack/), [Azure Service Operator(ASO)](https://azure.github.io/azure-service-operator/), and [GCP Config Connector(KCC)](https://cloud.google.com/config-connector/docs/overview) as an input into a custom-built internal developer platform (IDP). In nearly all cases, platform teams are maintaining a custom orchestration layer between the developer interface and the cloud resources. The orchestration layer is typically responsible for: 
 * RBAC
 * Resource creation ordering
 * Continuous reconciliation
