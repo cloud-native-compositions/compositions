@@ -153,6 +153,7 @@ type CompositionStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:resource:scope=Cluster
 
 // Composition is the Schema for the compositions API
 type Composition struct {

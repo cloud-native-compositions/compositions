@@ -26,7 +26,7 @@ spec:
     listKind: CompositionList
     plural: compositions
     singular: composition
-  scope: Namespaced
+  scope: Cluster
   versions:
   - name: v1alpha1
     schema:
