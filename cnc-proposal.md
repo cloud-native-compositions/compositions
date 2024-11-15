@@ -46,14 +46,14 @@ Easily consume the cloud services I need (without needing to understand how K8s 
 As a platform administrator, I want to give end users in my organization self service access to SQL databases of different sizes across different cloud providers. I want to define all required resources and logic as a reusable composition, and define an end user interface that exposes only the options I want to be configurable by end users. 
 
 The composition would define:
-Database t-shirt sizes and cloud provider options, and all logic to map these t-shirt sizes to cloud provider APIs.
-A connection config object which can be used by an application and supports region migration
+- Database t-shirt sizes and cloud provider options, and all logic to map these t-shirt sizes to cloud provider APIs.
+- A connection config object which can be used by an application and supports region migration
 
 An end user would provision a new SQL database by creating an instance of this composition that defines:
-SQL instance name
-T-shirt size
-Cloud provider
-Cloud region
+- SQL instance name
+- T-shirt size
+- Cloud provider
+- Cloud region
 
 The end user does not need to be concerned with how their inputs are translated to cloud provider APIs, and does not need to worry about “breaking things” or breaching org policies since their interface and the underlying logic is owned by the platform administrator. 
 
@@ -61,23 +61,23 @@ The end user does not need to be concerned with how their inputs are translated 
 (Using GKE as the example, but equally applicable to any distribution). As a platform administrator, I want to give end users in my organization self service access to K8s clusters. As in the previous example, I want to define all required resources and logic as a reusable composition, and define an end user interface that exposes only the options I want to be configurable by end users. In addition to creating a cluster, we want the composition to deploy administrative workloads and config such as policies, agents etc. 
 
 The composition would define the following resources in Google Cloud (using KCC to provide the mappings from K8s CRDs to Google Cloud APIs):
-GKE cluster
-Container Node Pools
-IAM ServiceAccount
-IAM PolicyMember
-Services (cnrm)
+- GKE cluster
+- Container Node Pools
+- IAM ServiceAccount
+- IAM PolicyMember
+- Services (such as cnrm)
 
 The platform administrator would define the end user interface so that an end user can create a new cluster by creating an instance of this composition that defines:
-Cluster name
-Nodepool name
-Max nodes
-Location (e.g. us-east1)
-Networks (optional)
+- Cluster name
+- Nodepool name
+- Max nodes
+- Location (e.g. us-east1)
+- Networks (optional)
 
 After the cluster is successfully created, the following resources would be created in the cluster:
-Policies
-Admin Agents
-Admin workloads
+- Policies
+- Admin Agents
+- Admin workloads
 
 Everything related to policy, service accounts, and service activation (and how these resources related to each other) would be hidden from the end user, simplifying their experience. 
 
