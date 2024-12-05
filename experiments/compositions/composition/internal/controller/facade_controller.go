@@ -20,15 +20,11 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/go-logr/logr"
-	"github.com/gobuffalo/flect"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	extv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/retry"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -115,52 +111,16 @@ func (r *FacadeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 func (r *FacadeReconciler) createCRD(ctx context.Context,
 	c *compositionv1alpha1.Facade, logger logr.Logger) error {
 
-	var crd extv1.CustomResourceDefinition
 	logger = logger.WithName(c.Spec.FacadeKind)
 
-	plural := strings.ToLower(flect.Pluralize(c.Spec.FacadeKind))
-	crdName := fmt.Sprintf("%s.%s", plural, crds.FacadeGroup)
-
-	logger.Info("Checking if CRD exists", "crd", crdName)
-	err := r.Client.Get(ctx, types.NamespacedName{Name: crdName, Namespace: ""}, &crd)
-	// CRD exists. Nothing to be done.
-	if err == nil {
-		logger.Info("CRD exists. Not creating.", "crd", crdName)
-		return nil
-	}
-
-	// If we are unable to get it for some reason other than not found return
-	if !apierrors.IsNotFound(err) {
-		c.Status.Conditions = append(c.Status.Conditions, metav1.Condition{
-			LastTransitionTime: metav1.Now(),
-			Message:            err.Error(),
-			Reason:             "FailedGettingFacadeCRD",
-			Type:               string(compositionv1alpha1.Error),
-			Status:             metav1.ConditionTrue,
-		})
-		logger.Error(err, "failed to get an Facade CRD object")
-		return err
-	}
-
 	// Construct Facade CRD from the openAPI Schema
-	crdInfo := crds.NewFacadeCRDInfo(c.Spec.FacadeKind, plural, nil, "v1", nil, nil)
-	err = crdInfo.SetSpec(c.Spec.OpenAPIV3Schema)
+	gvk := schema.GroupVersionKind{
+		Kind: c.Spec.FacadeKind,
+	}
+	crdInfo := crds.NewFacadeCRDInfo(gvk, "", nil, nil, nil)
+	err := crdInfo.SetSpec(c.Spec.OpenAPIV3Schema)
 	if err == nil {
-		unversionedFacadeCRD, err := crdInfo.CRD()
-		if err == nil {
-			facadeCRD := &apiextensionsv1.CustomResourceDefinition{}
-			err = r.Scheme.Convert(unversionedFacadeCRD, facadeCRD, nil)
-			if err == nil {
-				err = r.Client.Create(ctx, facadeCRD)
-				if err != nil {
-					logger.Error(err, "failed to Create Facade CRD")
-				}
-			} else {
-				logger.Error(err, "CRD conversion error")
-			}
-		} else {
-			logger.Error(err, "Error getting unversioned CRD")
-		}
+		err = crdInfo.InstallCRD(ctx, logger, r.Client, r.Scheme)
 	} else {
 		logger.Error(err, "Unable to set CRD Spec from Schema")
 	}
@@ -174,7 +134,7 @@ func (r *FacadeReconciler) createCRD(ctx context.Context,
 			Status:             metav1.ConditionTrue,
 		})
 	}
-	logger.Info("Created Facade CRD", "crd", crdName)
+	logger.Info("Created Facade CRD", "crd", crdInfo.Name())
 	return err
 }
 

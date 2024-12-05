@@ -875,15 +875,15 @@ func (r *ExpanderReconciler) SetupWithManager(mgr ctrl.Manager, cr *unstructured
 		return fmt.Errorf("error building dynamic client: %w", err)
 	}
 
-	ratelimiter := workqueue.NewMaxOfRateLimiter(
-		workqueue.NewItemExponentialFailureRateLimiter(5*time.Millisecond, 120*time.Second),
+	ratelimiter := workqueue.NewTypedMaxOfRateLimiter[reconcile.Request](
+		workqueue.NewTypedItemExponentialFailureRateLimiter[reconcile.Request](5*time.Millisecond, 120*time.Second),
 		// 40 qps, 400 bucket size.  This is only for retry speed and its only the overall factor (not per item)
-		&workqueue.BucketRateLimiter{Limiter: rate.NewLimiter(rate.Limit(40), 400)},
+		&workqueue.TypedBucketRateLimiter[reconcile.Request]{Limiter: rate.NewLimiter(rate.Limit(40), 400)},
 	)
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(cr).
-		WatchesRawSource(&source.Channel{Source: r.CompositionChangedWatcher}, handler.EnqueueRequestsFromMapFunc(r.enqueueAllFromGVK)).
+		WatchesRawSource(source.Channel(r.CompositionChangedWatcher, handler.EnqueueRequestsFromMapFunc(r.enqueueAllFromGVK))).
 		WithOptions(controller.Options{RateLimiter: ratelimiter}).
 		Complete(r)
 }

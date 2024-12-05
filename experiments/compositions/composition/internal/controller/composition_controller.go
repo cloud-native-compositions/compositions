@@ -25,7 +25,9 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/awslabs/kro/pkg/simpleschema"
 	compositionv1alpha1 "github.com/cloud-native-compositions/compositions/composition/api/v1alpha1"
+	"github.com/cloud-native-compositions/compositions/composition/pkg/crds"
 	pb "github.com/cloud-native-compositions/compositions/composition/proto"
 	"github.com/go-logr/logr"
 	"google.golang.org/grpc"
@@ -38,6 +40,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/retry"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -299,14 +302,74 @@ func (r *CompositionReconciler) getExpanderValue(
 	return value, &ev, "", nil
 }
 
-func (r *CompositionReconciler) processComposition(
+// converts simpleschema raw bytes to
+// schema is expected to be defined using the "SimpleSchema" format.
+func buildSchema(raw []byte) (*extv1.JSONSchemaProps, error) {
+	// unmarshal the to a map[string]interface{} to
+	// make it easier to work with.
+	ssinstance := map[string]interface{}{}
+	err := yaml.UnmarshalStrict(raw, &ssinstance)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal simpleschema bytes: %w", err)
+	}
+
+	// generate openapi spec from simpleschema instance
+	openapiSchema, err := simpleschema.ToOpenAPISpec(ssinstance)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build OpenAPI schema for instance: %v", err)
+	}
+	return openapiSchema, nil
+}
+
+func (r *CompositionReconciler) ensureInputCRD(
 	ctx context.Context, c *compositionv1alpha1.Composition, logger logr.Logger,
-) error {
+) (*extv1.CustomResourceDefinition, error) {
 	var crd extv1.CustomResourceDefinition
-	logger = logger.WithName(c.Spec.InputAPIGroup)
 
+	// LEGACY: composition.spec.inputAPIGroup can point to a CRD that is already available.
+	// This CRD must be installed by the administrator prior to installing the composition.
 	crdName := c.Spec.InputAPIGroup
+	justCreated := false
 
+	if crdName == "" {
+		// FUTURE: composition.spec.schema The input CRD schema is part of the compositions defn.
+		// The composition controller manages the lifecycle of the CRD
+		gvk := schema.GroupVersionKind{
+			Group:   c.Spec.Schema.Group,
+			Version: c.Spec.Schema.APIVersion,
+			Kind:    c.Spec.Schema.Kind,
+		}
+
+		// The instance resource has a schema defined using the "SimpleSchema" format.
+		crdInfo := crds.NewFacadeCRDInfo(gvk, "", nil, nil, nil)
+		crdName = crdInfo.Name()
+		specSchema, err := buildSchema(c.Spec.Schema.Spec.Raw)
+		if err == nil {
+			err = crdInfo.SetSpec(specSchema)
+			if err == nil {
+				err = crdInfo.InstallCRD(ctx, logger, r.Client, r.Scheme)
+			} else {
+				logger.Error(err, "Unable to set CRD Spec from Schema")
+			}
+		} else {
+			logger.Error(err, "failed to build OpenAPI schema for instance")
+		}
+		if err != nil {
+			msg := fmt.Sprintf("Failed creating CRD from schema: %v", err)
+			c.Status.Conditions = append(c.Status.Conditions, metav1.Condition{
+				LastTransitionTime: metav1.Now(),
+				Message:            msg,
+				Reason:             "CreateFacadeCRDFailed",
+				Type:               string(compositionv1alpha1.Error),
+				Status:             metav1.ConditionTrue,
+			})
+			return nil, err
+		}
+		justCreated = true
+		logger.Info("Created Facade CRD", "crd", crdInfo.Name())
+	}
+
+	// Get the existing/created crd
 	err := r.Client.Get(ctx, types.NamespacedName{Name: crdName, Namespace: ""}, &crd)
 	if err != nil {
 		reason := "FailedGettingFacadeCRD"
@@ -321,8 +384,22 @@ func (r *CompositionReconciler) processComposition(
 			Status:             metav1.ConditionTrue,
 		})
 		logger.Error(err, "failed to get an Facade CRD object")
-		r.Recorder.Event(c, "Warning", "MissingFacadeCRD",
-			fmt.Sprintf("Failed to get Facade CRD: %s", c.Spec.InputAPIGroup))
+		if !justCreated {
+			r.Recorder.Event(c, "Warning", "MissingFacadeCRD",
+				fmt.Sprintf("Failed to get Facade CRD: %s", c.Spec.InputAPIGroup))
+		}
+		return nil, err
+	}
+	return &crd, nil
+}
+
+func (r *CompositionReconciler) processComposition(
+	ctx context.Context, c *compositionv1alpha1.Composition, logger logr.Logger,
+) error {
+	logger = logger.WithName(c.Spec.InputAPIGroup)
+
+	crd, err := r.ensureInputCRD(ctx, c, logger)
+	if err != nil {
 		return err
 	}
 

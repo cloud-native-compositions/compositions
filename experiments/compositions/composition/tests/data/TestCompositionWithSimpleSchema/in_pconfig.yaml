@@ -1,12 +1,10 @@
-#!/bin/bash
-
-# Copyright 2022 The Kubernetes Authors.
+# Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,18 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-# CI script to verify go imports
-
-set -o errexit
-set -o nounset
-set -o pipefail
-
-# cd to the repo root
-files=$(go run golang.org/x/tools/cmd/goimports -format-only -l experiments/compositions/composition/.)
-# Sadly goimports doesn't use exit codes
-if [[ -n "${files}" ]]; then
-    echo "::error ::goimports should be run on these files:"
-    echo "${files}"
-    exit 1
-fi
+apiVersion: facade.compositions.google.com/v1
+kind: PConfig
+metadata:
+  name: team-a-config
+  namespace: team-a
+spec:
+  project: proj-a

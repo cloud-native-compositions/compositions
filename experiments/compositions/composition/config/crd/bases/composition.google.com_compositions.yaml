@@ -134,6 +134,59 @@ spec:
                   - readyIf
                   type: object
                 type: array
+              schema:
+                description: |-
+                  The schema of the resourcegroup, which includes the
+                  apiVersion, kind, spec, status, types, and some validation
+                  rules.
+                properties:
+                  apiVersion:
+                    description: |-
+                      The APIVersion of the resourcegroup. This is used to generate
+                      and create the CRD for the resourcegroup.
+                    type: string
+                    x-kubernetes-validations:
+                    - message: apiVersion is immutable
+                      rule: self == oldSelf
+                  group:
+                    description: |-
+                      The group of the resourcegroup. This is used to generate
+                      and create the CRD for the resourcegroup.
+                    type: string
+                    x-kubernetes-validations:
+                    - message: kind is immutable
+                      rule: self == oldSelf
+                  kind:
+                    description: |-
+                      The kind of the resourcegroup. This is used to generate
+                      and create the CRD for the resourcegroup.
+                    type: string
+                    x-kubernetes-validations:
+                    - message: kind is immutable
+                      rule: self == oldSelf
+                  spec:
+                    description: |-
+                      The spec of the resourcegroup. Typically, this is the spec of
+                      the CRD that the resourcegroup is managing. This is adhering
+                      to the SimpleSchema spec
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  status:
+                    description: |-
+                      The status of the resourcegroup. This is the status of the CRD
+                      that the resourcegroup is managing. This is adhering to the
+                      SimpleSchema spec.
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  validation:
+                    description: |-
+                      Validation is a list of validation rules that are applied to the
+                      resourcegroup.
+                      Not implemented yet.
+                    items:
+                      type: string
+                    type: array
+                type: object
             required:
             - expanders
             type: object
