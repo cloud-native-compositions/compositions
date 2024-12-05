@@ -40,13 +40,12 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
-          stable: true
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6 # v3.7.1
         with:
-          #working-directory: ./composition
+          working-directory: ./experiments/compositions/composition
           version: v1.59.1 # should match the version in Makefile
-          args: --timeout=10m
+          args: --timeout=10m --config=../.golangci.yaml
   verify-goimports:
     runs-on: ubuntu-latest
     steps:
@@ -58,7 +57,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
-          stable: true
       - uses: actions/checkout@v4
       - name: verify goimports
         run: |
@@ -70,7 +68,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
-          stable: true
       - uses: actions/checkout@v4
       - run: |
           ./experiments/compositions/scripts/github-actions/format-gomod.sh
