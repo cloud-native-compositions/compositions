@@ -22,10 +22,15 @@ set -o nounset
 set -o pipefail
 
 # cd to the repo root
-files=$(go run golang.org/x/tools/cmd/goimports -format-only -l experiments/compositions/composition/.)
-# Sadly goimports doesn't use exit codes
-if [[ -n "${files}" ]]; then
+cd experiments/compositions
+paths=("composition/." "expanders/cel-expander/." "expanders/helm-expander/.")
+for dir in "${paths[@]}"; do
+  echo "Verifying go-imports in $dir"
+  files=$(go run golang.org/x/tools/cmd/goimports -format-only -l $dir)
+  # Sadly goimports doesn't use exit codes
+  if [[ -n "${files}" ]]; then
     echo "::error ::goimports should be run on these files:"
     echo "${files}"
     exit 1
-fi
+  fi
+done
