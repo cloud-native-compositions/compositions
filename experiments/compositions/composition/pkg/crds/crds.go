@@ -14,16 +14,24 @@
 
 package crds
 
+// TODO: barney-s: migrate use of apiextensions to extv1
+
 import (
 	"context"
 	"fmt"
 	"strings"
 
+	"github.com/go-logr/logr"
+	"github.com/gobuffalo/flect"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	extv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextensionsvalidation "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/validation"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -33,7 +41,7 @@ const (
 var scheme = runtime.NewScheme()
 
 func init() {
-	if err := apiextensionsv1.AddToScheme(scheme); err != nil {
+	if err := extv1.AddToScheme(scheme); err != nil {
 		panic(err)
 	}
 	if err := apiextensions.AddToScheme(scheme); err != nil {
@@ -42,29 +50,36 @@ func init() {
 }
 
 type CRDInfo struct {
-	Group          string // Should the group be hardcoded to something like facade.compositions.google.com ?
-	Kind           string
+	GVK            schema.GroupVersionKind
 	Plural         string
 	ShortNames     []string
 	Categories     []string
-	Version        string
 	PrinterColumns []apiextensions.CustomResourceColumnDefinition
 	Labels         map[string]string
 	schema         *apiextensions.JSONSchemaProps
 }
 
-func NewFacadeCRDInfo(kind string, plural string,
-	shortNames []string, version string,
+func NewFacadeCRDInfo(
+	gvk schema.GroupVersionKind,
+	plural string,
+	shortNames []string,
 	printerCols []apiextensions.CustomResourceColumnDefinition,
 	labels map[string]string) *CRDInfo {
 
+	if gvk.Group == "" {
+		gvk.Group = FacadeGroup
+	}
+	if gvk.Version == "" {
+		gvk.Version = "v1"
+	}
+	if plural == "" {
+		plural = strings.ToLower(flect.Pluralize(gvk.Kind))
+	}
 	crd := CRDInfo{
-		Group:          FacadeGroup,
-		Kind:           kind,
+		GVK:            gvk,
 		Plural:         plural,
 		ShortNames:     shortNames,
 		Categories:     []string{"facade", "facades"},
-		Version:        version,
 		PrinterColumns: printerCols,
 		schema:         nil,
 	}
@@ -82,10 +97,20 @@ func (c *CRDInfo) SetCRDSchema(schema *apiextensions.JSONSchemaProps) {
 	c.schema = schema
 }
 
-func (c *CRDInfo) SetSpec(specProperties *apiextensionsv1.JSONSchemaProps) error {
+func (c *CRDInfo) Name() string {
+	return c.Plural + "." + c.GVK.Group
+}
+
+func (c *CRDInfo) String() string {
+	return c.Name()
+}
+
+func (c *CRDInfo) SetSpec(specProperties *extv1.JSONSchemaProps) error {
+	// Do we need this ?
+	// Can we use extv1 only instead
 	specUnversionedProperties := &apiextensions.JSONSchemaProps{}
 	// Risk ? nil conversion.Scope passed
-	if err := apiextensionsv1.Convert_v1_JSONSchemaProps_To_apiextensions_JSONSchemaProps(
+	if err := extv1.Convert_v1_JSONSchemaProps_To_apiextensions_JSONSchemaProps(
 		specProperties, specUnversionedProperties, nil); err != nil {
 		return err
 	}
@@ -168,12 +193,12 @@ func (c *CRDInfo) CRD() (*apiextensions.CustomResourceDefinition, error) {
 	crd := &apiextensions.CustomResourceDefinition{
 		Spec: apiextensions.CustomResourceDefinitionSpec{
 			PreserveUnknownFields: ptr.To[bool](false),
-			Group:                 c.Group,
+			Group:                 c.GVK.Group,
 			Names: apiextensions.CustomResourceDefinitionNames{
-				Kind:       c.Kind,
-				ListKind:   c.Kind + "List",
+				Kind:       c.GVK.Kind,
+				ListKind:   c.GVK.Kind + "List",
 				Plural:     strings.ToLower(c.Plural),
-				Singular:   strings.ToLower(c.Kind),
+				Singular:   strings.ToLower(c.GVK.Kind),
 				ShortNames: c.ShortNames,
 				Categories: c.Categories,
 			},
@@ -181,14 +206,14 @@ func (c *CRDInfo) CRD() (*apiextensions.CustomResourceDefinition, error) {
 				OpenAPIV3Schema: c.schema,
 			},
 			Scope:   apiextensions.NamespaceScoped,
-			Version: c.Version,
+			Version: c.GVK.Version,
 			Subresources: &apiextensions.CustomResourceSubresources{
 				Status: &apiextensions.CustomResourceSubresourceStatus{},
 				Scale:  nil,
 			},
 			Versions: []apiextensions.CustomResourceDefinitionVersion{
 				{
-					Name:    c.Version,
+					Name:    c.GVK.Version,
 					Storage: true,
 					Served:  true,
 				},
@@ -198,7 +223,7 @@ func (c *CRDInfo) CRD() (*apiextensions.CustomResourceDefinition, error) {
 	}
 
 	// Defaulting functions are not found in versionless CRD package
-	crdv1 := &apiextensionsv1.CustomResourceDefinition{}
+	crdv1 := &extv1.CustomResourceDefinition{}
 	if err := scheme.Convert(crd, crdv1, nil); err != nil {
 		return nil, err
 	}
@@ -208,7 +233,7 @@ func (c *CRDInfo) CRD() (*apiextensions.CustomResourceDefinition, error) {
 	if err := scheme.Convert(crdv1, crd2, nil); err != nil {
 		return nil, err
 	}
-	crd2.ObjectMeta.Name = fmt.Sprintf("%s.%s", crd.Spec.Names.Plural, c.Group)
+	crd2.ObjectMeta.Name = c.Name()
 
 	labels := c.Labels
 	if labels == nil {
@@ -217,6 +242,50 @@ func (c *CRDInfo) CRD() (*apiextensions.CustomResourceDefinition, error) {
 	crd2.ObjectMeta.Labels = labels
 
 	return crd2, nil
+}
+
+func (c *CRDInfo) InstallCRD(ctx context.Context,
+	logger logr.Logger,
+	cc client.Client,
+	rs *runtime.Scheme,
+) error {
+
+	var crd extv1.CustomResourceDefinition
+	crdName := c.Name()
+
+	logger.Info("Checking if CRD exists", "crd", crdName)
+	err := cc.Get(ctx, types.NamespacedName{Name: crdName, Namespace: ""}, &crd)
+	// CRD exists. Nothing to be done.
+	if err == nil {
+		logger.Info("CRD exists. Not creating.", "crd", crdName)
+		return nil
+	}
+
+	// If we are unable to get it for some reason other than not found return
+	if !apierrors.IsNotFound(err) {
+		logger.Error(err, "failed to get an Facade CRD object")
+		return err
+	}
+
+	// Construct Facade CRD from the openAPI Schema
+	unversionedFacadeCRD, err := c.CRD()
+	if err == nil {
+		facadeCRD := &extv1.CustomResourceDefinition{}
+		err = rs.Convert(unversionedFacadeCRD, facadeCRD, nil)
+		if err == nil {
+			err = cc.Create(ctx, facadeCRD)
+			if err != nil {
+				logger.Error(err, "failed to Create Facade CRD")
+			}
+		} else {
+			logger.Error(err, "CRD conversion error")
+		}
+	} else {
+		logger.Error(err, "Error getting unversioned CRD")
+	}
+
+	logger.Info("Created Facade CRD", "crd", crdName)
+	return err
 }
 
 // ValidateCRD calls the CRD package's validation on an internal representation of the CRD.
