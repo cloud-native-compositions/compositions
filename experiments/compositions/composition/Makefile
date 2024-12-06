@@ -191,7 +191,13 @@ deploy-kind: release-test-kind-manifests docker-build docker-build-inline docker
 	kubectl --context kind-${KIND_CLUSTER} get pods -A
 
 
-.PHONY: run-testcase
+
+# reuse cluster and run a single test
+.PHONY: single-test
+run-testcase: 
+	cd tests/testcases/ && $(GOPREFIX) go test -v -timeout 3600s -run "^${TESTCASE}" --images=${IMG},${INLINE_IMG},${JINJA_IMG},${GETTER_IMG} --reuse-cluster=true
+
+.PHONY: e2e-single-test
 run-testcase: release-test-kind-manifests docker-build docker-build-inline docker-build-expander-jinja2 docker-build-expander-getter fmt #docker-push docker-push-inline docker-push-expander-jinja2 docker-push-expander-getter
 	cd tests/testcases/ && $(GOPREFIX) go test -v -timeout 3600s -run "^${TESTCASE}" --images=${IMG},${INLINE_IMG},${JINJA_IMG},${GETTER_IMG}
 

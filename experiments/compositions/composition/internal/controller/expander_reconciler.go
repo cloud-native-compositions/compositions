@@ -44,6 +44,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/client-go/util/workqueue"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -884,6 +885,9 @@ func (r *ExpanderReconciler) SetupWithManager(mgr ctrl.Manager, cr *unstructured
 	return ctrl.NewControllerManagedBy(mgr).
 		For(cr).
 		WatchesRawSource(source.Channel(r.CompositionChangedWatcher, handler.EnqueueRequestsFromMapFunc(r.enqueueAllFromGVK))).
-		WithOptions(controller.Options{RateLimiter: ratelimiter}).
+		WithOptions(controller.Options{
+			RateLimiter:        ratelimiter,
+			SkipNameValidation: ptr.To(true),
+		}).
 		Complete(r)
 }
