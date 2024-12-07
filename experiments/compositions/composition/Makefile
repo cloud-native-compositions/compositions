@@ -112,13 +112,19 @@ debug: generate fmt vet manifests
 # If you wish to build the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
-.PHONY: docker-build
-docker-build: ## Build docker image with the manager.
+.PHONY: docker-build-composition
+docker-build-composition: ## Build docker image with the manager.
 	$(CONTAINER_TOOL) build -t ${IMG} .
 
-.PHONY: docker-push
-docker-push: ## Push docker image with the manager.
+.PHONY: docker-push-composition
+docker-push-composition: ## Push docker image with the manager.
 	$(CONTAINER_TOOL) push ${IMG}
+
+.PHONY: docker-build
+docker-build: docker-build-composition docker-build-inline docker-build-expander-jinja2 docker-build-expander-getter 
+
+.PHONY: docker-push
+docker-push: docker-push-composition docker-push-inline docker-push-expander-jinja2 docker-push-expander-getter 
 
 # PLATFORMS defines the target platforms for the manager image be built to provide support to multiple
 # architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
@@ -142,13 +148,13 @@ docker-buildx: ## Build and push docker image for the manager for cross-platform
 .PHONY: common-test-manifests
 common-test-manifests: manifests kustomize
 	mkdir -p release/test
-	#cd ../facade && $(KUSTOMIZE) build config/crd -o ../composition/release/test/facade_crds.yaml
 	$(KUSTOMIZE) build config/crd -o release/test/crds.yaml
 
 .PHONY: release-manifests
 release-manifests: manifests kustomize
 	$(KUSTOMIZE) build config/crd -o release/crds.yaml
 	$(KUSTOMIZE) build config/release -o release/manifest.yaml
+	$(MAKE) fmt
 
 .PHONY: release-test-cc-manifests
 release-test-cc-manifests: common-test-manifests
@@ -172,10 +178,8 @@ release-test-kind-manifests: common-test-manifests
 	cd config/expanders && $(KUSTOMIZE) edit set image expander-jinja2=expander-jinja2:latest
 	cd config/expanders && $(KUSTOMIZE) edit set image expander-getter=expander-getter:latest
 
-.PHONY: deploy-kind
-deploy-kind: release-test-kind-manifests docker-build docker-build-inline docker-build-expander-jinja2 docker-build-expander-getter 
-	kind delete clusters ${KIND_CLUSTER} || true
-	kind create cluster --name ${KIND_CLUSTER}
+.PHONY: load-kind-images
+load-kind-images:
 	kind load docker-image ${IMG} --name ${KIND_CLUSTER}
 	# for testing samples/FirstComposition
 	docker image pull nginx:1.16.0
@@ -183,11 +187,24 @@ deploy-kind: release-test-kind-manifests docker-build docker-build-inline docker
 	kind load docker-image ${INLINE_IMG} --name ${KIND_CLUSTER}
 	kind load docker-image ${JINJA_IMG} --name ${KIND_CLUSTER}
 	kind load docker-image ${GETTER_IMG} --name ${KIND_CLUSTER}
+
+.PHONY: apply-test-manifests
+apply-test-manifests:
 	kubectl --context kind-${KIND_CLUSTER} apply -f release/test/crds.yaml
 	#kubectl --context kind-${KIND_CLUSTER} apply -f release/test/facade_crds.yaml
 	sleep 5 # for CRDs to be registered
 	kubectl --context kind-${KIND_CLUSTER} apply -f release/test/kind-operator.yaml
 	sleep 5
+
+.PHONY: create-kind-cluster
+create-kind-cluster:
+	kind delete clusters ${KIND_CLUSTER} || true
+	kind create cluster --name ${KIND_CLUSTER}
+
+.PHONY: deploy-kind
+deploy-kind: release-test-kind-manifests docker-build
+	$(MAKE) load-kind-images
+	$(MAKE) apply-test-manifests
 	kubectl --context kind-${KIND_CLUSTER} get pods -A
 
 

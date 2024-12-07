@@ -25,7 +25,7 @@ spec:
     listKind: CompositionList
     plural: compositions
     singular: composition
-  scope: Namespaced
+  scope: Cluster
   versions:
   - name: v1alpha1
     schema:
@@ -93,6 +93,7 @@ spec:
                       default: latest
                       type: string
                   required:
+                  - name
                   - type
                   type: object
                 minItems: 1
@@ -109,6 +110,29 @@ spec:
                 - inherit
                 - explicit
                 type: string
+              readiness:
+                description: Readiness
+                items:
+                  description: ReadyOn defines ready condition for a GVK
+                  properties:
+                    group:
+                      type: string
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                    readyIf:
+                      type: string
+                    version:
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - readyIf
+                  type: object
+                type: array
             required:
             - expanders
             type: object
@@ -224,7 +248,9 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Context is the Schema for the contexts API
+        description: |-
+          Context is used to set a set of common parameters per namespace.
+          Currently it includes a string that identifies a cloud project
         properties:
           apiVersion:
             description: |-
@@ -470,9 +496,25 @@ spec:
                 description: Bring your own open API spec
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
+              simpleSchema:
+                description: Simple Schema
+                properties:
+                  required:
+                    items:
+                      type: string
+                    type: array
+                  spec:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  status:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                required:
+                - spec
+                - status
+                type: object
             required:
             - facadeKind
-            - openAPIV3Schema
             type: object
           status:
             description: FacadeStatus defines the observed state of Facade
@@ -618,8 +660,7 @@ spec:
                         kind:
                           type: string
                         name:
-                          description: OneOf validation needed for Name and NameSuffix
-                            in CRD Definition
+                          description: OneOf validation added for Name and NameSuffix
                           type: string
                         nameSuffix:
                           type: string
@@ -771,7 +812,7 @@ spec:
             description: PlanStatus defines the observed state of Plan
             properties:
               compositionGeneration:
-                description: Composition generation last succesfully reconciled
+                description: Composition generation last successfully reconciled
                 format: int64
                 type: integer
               compositionUID:
@@ -851,7 +892,7 @@ spec:
                 format: int64
                 type: integer
               inputGeneration:
-                description: Facade's generation last succesfully reconciled
+                description: Facade's generation last successfully reconciled
                 format: int64
                 type: integer
               lastPruned:

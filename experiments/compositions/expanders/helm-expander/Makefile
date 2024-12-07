@@ -28,8 +28,12 @@ generate: controller-gen
 	$(GOPREFIX) $(CONTROLLER_GEN) object paths="./api/..."
 
 .PHONY: fmt
-fmt: ## Run go fmt against code.
+fmt: license ## Run go fmt against code.
 	$(GOPREFIX) go fmt ./...
+
+.PHONY: license
+license:
+	GOFLAGS= $(GOPREFIX) go run github.com/google/addlicense@04bfe4ee9ca5764577b029acc6a1957fd1997153 -c "Google LLC" -l apache ./
 
 .PHONY: vet
 vet: ## Run go vet against code.
@@ -66,6 +70,7 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 .PHONY: release-manifests
 release-manifests: manifests kustomize
 	$(KUSTOMIZE) build config/release -o release/manifest.yaml
+	$(MAKE) license
 
 ##@ Tooling
 ## Location to install dependencies to
@@ -148,19 +153,33 @@ create-kind:
 	kind delete clusters ${KIND_CLUSTER} || true
 	kind create cluster --name ${KIND_CLUSTER}
 
-.PHONY: deploy-kind
-deploy-kind: kustomize manifests docker-build
-	kind load docker-image ${EXPANDER_IMG} --name ${KIND_CLUSTER}
-	# this is ok to fail for existing kind cluster
-	$(KUBECTL) --context kind-${KIND_CLUSTER} create namespace composition-system || true
-	$(KUSTOMIZE) build config/crd | $(KUBECTL) --context kind-${KIND_CLUSTER} apply -f -
-	sleep 5 # for CRDs to be registered
+.PHONY: release-test-kind-manifests
+release-test-kind-manifests: manifests kustomize
+	mkdir -p release/test
+	$(KUSTOMIZE) build config/crd -o release/test/crds.yaml
 	cd config/expanders && $(KUSTOMIZE) edit set image expander-helm=${EXPANDER_IMG}
-	$(KUSTOMIZE) build config/default | $(KUBECTL) --context kind-${KIND_CLUSTER} apply -f -
+	$(KUSTOMIZE) build config/default -o release/test/kind-operator.yaml
 	cd config/expanders && $(KUSTOMIZE) edit set image expander-helm=expander-helm:latest
-	# this is ok to fail for unit-test cases that dont need the core composition to be installed
-	$(KUSTOMIZE) build config/expander-versions | $(KUBECTL) --context kind-${KIND_CLUSTER} apply -f - || true
+	$(KUSTOMIZE) build config/expander-versions -o release/test/expander-versions.yaml
+
+.PHONY: load-kind-images
+load-kind-images:
+	kind load docker-image ${EXPANDER_IMG} --name ${KIND_CLUSTER}
+
+.PHONY: apply-test-manifests
+apply-test-manifests:
+	$(KUBECTL) --context kind-${KIND_CLUSTER} create namespace composition-system || true
+	$(KUBECTL) --context kind-${KIND_CLUSTER} apply -f release/test/crds.yaml
+	sleep 5 # for CRDs to be registered
+	$(KUBECTL) --context kind-${KIND_CLUSTER} apply -f release/test/kind-operator.yaml
+	# this is ok to fail for unit-test cases
+	$(KUBECTL) --context kind-${KIND_CLUSTER} apply -f release/test/expander-versions.yaml || true
 	sleep 5
+
+.PHONY: deploy-kind
+deploy-kind: release-test-kind-manifests docker-build
+	$(MAKE) load-kind-images
+	$(MAKE) apply-test-manifests
 	kubectl --context kind-${KIND_CLUSTER} get pods -A
 
 .PHONY: unit-test
