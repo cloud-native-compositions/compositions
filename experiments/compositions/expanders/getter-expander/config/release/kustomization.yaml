@@ -12,12 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Adds namespace to all resources.
+namespace: composition-system
+namePrefix: composition-
 resources:
-- expander_versions.yaml
-- jinja2-v0.0.1.yaml
-images:
-- name: expander-jinja2
-  newName: expander-jinja2
-  newTag: latest
+- ../crd
+- ../expanders
+- ../expander-versions
+
+patches:
+- patch: '[{"op": "replace", "path": "/spec/template/spec/containers/0/image",
+    "value": "gcr.io/krmapihosting-release/expander-getter:v0.0.1"}]'
+  target:
+    kind: Deployment
+    name: getter-v0.0.1
+    namespace: system
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
