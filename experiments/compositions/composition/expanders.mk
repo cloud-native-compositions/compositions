@@ -49,7 +49,7 @@ docker-run-expander-jinja2: docker-build-expander-jinja2
 	docker run -p 8443:8443 ${JINJA_IMG}
 
 .PHONY: unit-test-expander-jinja2
-unit-test-expander-jinja2: deploy-kind
+unit-test-expander-jinja2: create-kind-cluster deploy-kind
 	kubectl patch service -n composition-system composition-jinja2-v0-0-1 -p '{"spec":{"type":"LoadBalancer"}}'
 	nodeip=$$(kubectl get nodes -o json  | jq '.items[0].status.addresses[0].address' | xargs echo );\
 	nodeport=$$(kubectl get service -n composition-system composition-jinja2-v0-0-1 -o json | jq ".spec.ports[0].nodePort");\
@@ -86,7 +86,7 @@ docker-run-expander-getter: docker-build-expander-getter
 	docker run -p 8443:8443 ${GETTER_IMG}
 
 .PHONY: unit-test-expander-getter
-unit-test-expander-getter: deploy-kind
+unit-test-expander-getter: create-kind-cluster deploy-kind
 	kubectl patch service -n composition-system composition-getter-v0-0-1 -p '{"spec":{"type":"LoadBalancer"}}'
 	nodeip=$$(kubectl get nodes -o json  | jq '.items[0].status.addresses[0].address' | xargs echo );\
 	nodeport=$$(kubectl get service -n composition-system composition-getter-v0-0-1 -o json | jq ".spec.ports[0].nodePort");\
