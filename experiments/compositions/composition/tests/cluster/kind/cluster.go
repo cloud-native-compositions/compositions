@@ -48,6 +48,7 @@ var (
 )
 
 type kindCluster struct {
+	reuseCluster  bool
 	name          string
 	config        *rest.Config
 	manifestPaths []string
@@ -72,9 +73,10 @@ type KindCluster interface {
 }
 
 // NewCluster - return a cluster setup object
-func NewCluster(name string, images []string,
+func NewCluster(name string, reuseCluster bool, images []string,
 	manifestPaths []string, deployments []types.NamespacedName) KindCluster {
 	return &kindCluster{
+		reuseCluster:  reuseCluster,
 		name:          name,
 		manifestPaths: manifestPaths,
 		images:        images,
@@ -92,32 +94,49 @@ func VerifyKindIsInstalled() error {
 }
 
 // Wait for all clusters to become ready
-func (c *kindCluster) create() error {
-	err := c.Delete()
-	if err != nil {
-		return fmt.Errorf("Delete existing cluster if present. err: %v", err)
-	}
-	clusterConfig, err := c.kindClusterDefinition()
-	if err != nil {
-		return fmt.Errorf("kindClusterDefinition failed. err: %v", err)
-	}
-	defer func() {
-		err := os.Remove(clusterConfig)
+func (c *kindCluster) create() (bool, error) {
+	reusing := false
+	if c.reuseCluster {
+		exists, err := c.Exists()
 		if err != nil {
-			panic("Error removing file: " + clusterConfig)
+			return reusing, fmt.Errorf("Checking for existing cluster failed. err: %v", err)
 		}
-	}()
-	c.config, err = c.createCluster(clusterConfig)
+		reusing = exists
+	}
+
+	if !reusing {
+		err := c.Delete()
+		if err != nil {
+			return reusing, fmt.Errorf("Delete existing cluster if present. err: %v", err)
+		}
+		clusterConfig, err := c.kindClusterDefinition()
+		if err != nil {
+			return reusing, fmt.Errorf("kindClusterDefinition failed. err: %v", err)
+		}
+		defer func() {
+			err := os.Remove(clusterConfig)
+			if err != nil {
+				panic("Error removing file: " + clusterConfig)
+			}
+		}()
+		err = c.createCluster(clusterConfig)
+		if err != nil {
+			return reusing, fmt.Errorf("createCluster() failed. err: %v", err)
+		}
+	}
+
+	var err error
+	c.config, err = c.getKubeConfig()
 	if err != nil {
-		return fmt.Errorf("createCluster() failed. err: %v", err)
+		return reusing, fmt.Errorf("getKubeConfig() failed. err: %v", err)
 	}
 
 	c.Client, err = client.New(c.Config(), client.Options{Scheme: scheme})
 	if err != nil {
-		return fmt.Errorf("getting client for kind cluster failed. err: %v", err)
+		return reusing, fmt.Errorf("getting client for kind cluster failed. err: %v", err)
 	}
 
-	return nil
+	return reusing, nil
 }
 
 func (c *kindCluster) registerImages() error {
@@ -219,9 +238,12 @@ func (c *kindCluster) RestartWorkloads() error {
 
 // ClusterUp: Create() + registerImages() + installManifests() + WaitForWorkloads()
 func (c *kindCluster) ClusterUp() error {
-	err := c.create()
+	reusing, err := c.create()
 	if err != nil {
 		return fmt.Errorf("Error Creating Cluster. err: %v", err)
+	}
+	if reusing {
+		return nil
 	}
 
 	err = c.registerImages()
@@ -321,12 +343,15 @@ networking:
 	return clusterConfigFile.Name(), err
 }
 
-func (c *kindCluster) createCluster(clusterConfig string) (*rest.Config, error) {
+func (c *kindCluster) createCluster(clusterConfig string) error {
 	op, err := exec.Command("kind", "create", "cluster", "--name", c.name, "--config", clusterConfig).CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("kind create cluster command failed: %v\n output: %s", err, op)
+		return fmt.Errorf("kind create cluster command failed: %v\n output: %s", err, op)
 	}
+	return nil
+}
 
+func (c *kindCluster) getKubeConfig() (*rest.Config, error) {
 	kubeConfigFile, err := os.CreateTemp("", "kubeconfig.yaml")
 	if err != nil {
 		return nil, err

@@ -29,10 +29,11 @@ import (
 )
 
 const (
-	CRDManifests          = "../../release/test/crds.yaml"
-	FacadeCRDManifests    = "../../release/test/facade_crds.yaml"
-	KindOperatorManifests = "../../release/test/kind-operator.yaml"
-	CCOperatorManifests   = "../../release/test/cc-operator.yaml"
+	CRDManifests            = "../../release/test/crds.yaml"
+	FacadeCRDManifests      = "../../release/test/facade_crds.yaml"
+	KindOperatorManifests   = "../../release/test/kind-operator.yaml"
+	GetterExpanderManifests = "../../../expanders/getter-expander/release/test/kind-operator.yaml"
+	CCOperatorManifests     = "../../release/test/cc-operator.yaml"
 )
 
 type ClusterUser interface {
@@ -90,7 +91,7 @@ func ReleaseCluster(t *testing.T, cluster ClusterUser) {
 }
 
 // Create Kind Clusters
-func CreateKindClusters(clusterCount int, images string) {
+func CreateKindClusters(reuseCluster bool, clusterCount int, images string) {
 	var wg sync.WaitGroup
 	wg.Add(clusterCount)
 	// Start with 1 e2e cluster
@@ -98,11 +99,11 @@ func CreateKindClusters(clusterCount int, images string) {
 		go func(index int) {
 			name := fmt.Sprintf("composition-e2e-%d", index)
 			// kind cluster
-			kc := kind.NewCluster(name,
+			kc := kind.NewCluster(name, reuseCluster,
 				// that adds these images
 				strings.Split(images, ","),
 				// and installs these manifests
-				[]string{CRDManifests, KindOperatorManifests},
+				[]string{CRDManifests, KindOperatorManifests, GetterExpanderManifests},
 				// and waits for these deployments to be ready
 				[]types.NamespacedName{
 					{Namespace: "composition-system", Name: "composition-controller-manager"},
@@ -123,8 +124,11 @@ func CreateKindClusters(clusterCount int, images string) {
 }
 
 // Create CC Cluster
-func CreateCCClusters(clusterCount int, images string) {
+func CreateCCClusters(reuseCluster bool, clusterCount int, images string) {
 	var wg sync.WaitGroup
+	if reuseCluster {
+		log.Fatalf("--reuse-cluster not supported for CC clusters")
+	}
 	if clusterCount > 1 {
 		log.Fatalf("clusterCount must be 1 for CC clusters")
 		return

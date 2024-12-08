@@ -44,17 +44,3 @@ spec:
   validVersions:
   - v0.0.1
   - v0.0.0
----
-apiVersion: composition.google.com/v1alpha1
-kind: ExpanderVersion
-metadata:
-  name: getter
-  namespace: system
-spec:
-  type: grpc
-  validVersions:
-  - v0.0.1
-  config:
-    group: composition.google.com
-    version: v1alpha1
-    kind: GetterConfiguration
