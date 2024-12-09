@@ -38,7 +38,7 @@ spec:
     listKind: CompositionList
     plural: compositions
     singular: composition
-  scope: Namespaced
+  scope: Cluster
   versions:
   - name: v1alpha1
     schema:
@@ -106,6 +106,7 @@ spec:
                       default: latest
                       type: string
                   required:
+                  - name
                   - type
                   type: object
                 minItems: 1
@@ -122,6 +123,82 @@ spec:
                 - inherit
                 - explicit
                 type: string
+              readiness:
+                description: Readiness
+                items:
+                  description: ReadyOn defines ready condition for a GVK
+                  properties:
+                    group:
+                      type: string
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                    readyIf:
+                      type: string
+                    version:
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - readyIf
+                  type: object
+                type: array
+              schema:
+                description: |-
+                  The schema of the resourcegroup, which includes the
+                  apiVersion, kind, spec, status, types, and some validation
+                  rules.
+                properties:
+                  apiVersion:
+                    description: |-
+                      The APIVersion of the resourcegroup. This is used to generate
+                      and create the CRD for the resourcegroup.
+                    type: string
+                    x-kubernetes-validations:
+                    - message: apiVersion is immutable
+                      rule: self == oldSelf
+                  group:
+                    description: |-
+                      The group of the resourcegroup. This is used to generate
+                      and create the CRD for the resourcegroup.
+                    type: string
+                    x-kubernetes-validations:
+                    - message: kind is immutable
+                      rule: self == oldSelf
+                  kind:
+                    description: |-
+                      The kind of the resourcegroup. This is used to generate
+                      and create the CRD for the resourcegroup.
+                    type: string
+                    x-kubernetes-validations:
+                    - message: kind is immutable
+                      rule: self == oldSelf
+                  spec:
+                    description: |-
+                      The spec of the resourcegroup. Typically, this is the spec of
+                      the CRD that the resourcegroup is managing. This is adhering
+                      to the SimpleSchema spec
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  status:
+                    description: |-
+                      The status of the resourcegroup. This is the status of the CRD
+                      that the resourcegroup is managing. This is adhering to the
+                      SimpleSchema spec.
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  validation:
+                    description: |-
+                      Validation is a list of validation rules that are applied to the
+                      resourcegroup.
+                      Not implemented yet.
+                    items:
+                      type: string
+                    type: array
+                type: object
             required:
             - expanders
             type: object
@@ -237,7 +314,9 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Context is the Schema for the contexts API
+        description: |-
+          Context is used to set a set of common parameters per namespace.
+          Currently it includes a string that identifies a cloud project
         properties:
           apiVersion:
             description: |-
@@ -483,9 +562,25 @@ spec:
                 description: Bring your own open API spec
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
+              simpleSchema:
+                description: Simple Schema
+                properties:
+                  required:
+                    items:
+                      type: string
+                    type: array
+                  spec:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  status:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                required:
+                - spec
+                - status
+                type: object
             required:
             - facadeKind
-            - openAPIV3Schema
             type: object
           status:
             description: FacadeStatus defines the observed state of Facade
@@ -631,8 +726,7 @@ spec:
                         kind:
                           type: string
                         name:
-                          description: OneOf validation needed for Name and NameSuffix
-                            in CRD Definition
+                          description: OneOf validation added for Name and NameSuffix
                           type: string
                         nameSuffix:
                           type: string
@@ -784,7 +878,7 @@ spec:
             description: PlanStatus defines the observed state of Plan
             properties:
               compositionGeneration:
-                description: Composition generation last succesfully reconciled
+                description: Composition generation last successfully reconciled
                 format: int64
                 type: integer
               compositionUID:
@@ -864,7 +958,7 @@ spec:
                 format: int64
                 type: integer
               inputGeneration:
-                description: Facade's generation last succesfully reconciled
+                description: Facade's generation last successfully reconciled
                 format: int64
                 type: integer
               lastPruned:
@@ -944,19 +1038,6 @@ metadata:
     app.kubernetes.io/name: serviceaccount
     app.kubernetes.io/part-of: composition
   name: composition-controller-manager
-  namespace: composition-system
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  labels:
-    app.kubernetes.io/component: rbac
-    app.kubernetes.io/created-by: composition
-    app.kubernetes.io/instance: getter-expander-sa
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: serviceaccount
-    app.kubernetes.io/part-of: composition
-  name: composition-getter-expander
   namespace: composition-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -1084,27 +1165,6 @@ rules:
   - expanderversions/status
   verbs:
   - get
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: composition-getter-expander
-rules:
-- apiGroups:
-  - apiextensions.k8s.io
-  resources:
-  - customresourcedefinitions
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - '*'
-  resources:
-  - '*'
-  verbs:
-  - get
-  - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -1433,26 +1493,6 @@ metadata:
   labels:
     app.kubernetes.io/component: rbac
     app.kubernetes.io/created-by: composition
-    app.kubernetes.io/instance: getter-expander-rolebinding
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: clusterrolebinding
-    app.kubernetes.io/part-of: composition
-  name: composition-getter-expander-rolebinding
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: composition-getter-expander
-subjects:
-- kind: ServiceAccount
-  name: composition-getter-expander
-  namespace: composition-system
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  labels:
-    app.kubernetes.io/component: rbac
-    app.kubernetes.io/created-by: composition
     app.kubernetes.io/instance: manager-rolebinding
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: clusterrolebinding
@@ -1509,50 +1549,6 @@ spec:
   selector:
     control-plane: controller-manager
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app.kubernetes.io/component: expanders
-    app.kubernetes.io/created-by: composition
-    app.kubernetes.io/instance: getter-v0.0.1
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: service
-    app.kubernetes.io/part-of: composition
-    control-plane: expander-getter
-  name: composition-getter-v0-0-1
-  namespace: composition-system
-spec:
-  ports:
-  - name: grpc
-    port: 8443
-    protocol: TCP
-    targetPort: 8443
-  selector:
-    control-plane: expander-getter-v0.0.1
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app.kubernetes.io/component: expanders
-    app.kubernetes.io/created-by: composition
-    app.kubernetes.io/instance: jinja2-v0.0.1
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: service
-    app.kubernetes.io/part-of: composition
-    control-plane: expander-jinja2
-  name: composition-jinja2-v0-0-1
-  namespace: composition-system
-spec:
-  ports:
-  - name: grpc
-    port: 8443
-    protocol: TCP
-    targetPort: 8443
-  selector:
-    control-plane: expander-jinja2-v0.0.1
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1570,13 +1566,13 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      control-plane: controller-manager
+      control-plane: composition-controller-manager
   template:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: manager
       labels:
-        control-plane: controller-manager
+        control-plane: composition-controller-manager
     spec:
       containers:
       - args:
@@ -1608,7 +1604,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: gcr.io/krmapihosting-release/composition:0.0.406
+        image: gcr.io/krmapihosting-release/composition:v0.0.406
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -1639,140 +1635,3 @@ spec:
         runAsNonRoot: true
       serviceAccountName: composition-controller-manager
       terminationGracePeriodSeconds: 10
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app.kubernetes.io/component: expanders
-    app.kubernetes.io/created-by: composition
-    app.kubernetes.io/instance: getter-v0.0.1
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: deployment
-    app.kubernetes.io/part-of: composition
-    control-plane: expander-getter-v0.0.1
-  name: composition-getter-v0.0.1
-  namespace: composition-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      control-plane: expander-getter-v0.0.1
-  template:
-    metadata:
-      annotations:
-        kubectl.kubernetes.io/default-container: expander
-      labels:
-        control-plane: expander-getter-v0.0.1
-    spec:
-      containers:
-      - args:
-        - --port=8443
-        command:
-        - /expander
-        image: gcr.io/krmapihosting-release/expander-getter:v0.0.1
-        name: getter
-        resources:
-          limits:
-            cpu: 500m
-            memory: 512Mi
-          requests:
-            cpu: 10m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-      serviceAccountName: composition-getter-expander
-      terminationGracePeriodSeconds: 10
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app.kubernetes.io/component: expanders
-    app.kubernetes.io/created-by: composition
-    app.kubernetes.io/instance: jinja2-v0.0.1
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: deployment
-    app.kubernetes.io/part-of: composition
-    control-plane: expander-jinja2-v0.0.1
-  name: composition-jinja2-v0.0.1
-  namespace: composition-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      control-plane: expander-jinja2-v0.0.1
-  template:
-    metadata:
-      annotations:
-        kubectl.kubernetes.io/default-container: expander
-      labels:
-        control-plane: expander-jinja2-v0.0.1
-    spec:
-      containers:
-      - args:
-        - --port=8443
-        command:
-        - /expander
-        image: gcr.io/krmapihosting-release/expander-jinja2:v0.0.1
-        name: jinja2
-        resources:
-          limits:
-            cpu: 500m
-            memory: 512Mi
-          requests:
-            cpu: 10m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-      terminationGracePeriodSeconds: 10
----
-apiVersion: composition.google.com/v1alpha1
-kind: ExpanderVersion
-metadata:
-  name: composition-getter
-  namespace: composition-system
-spec:
-  config:
-    group: composition.google.com
-    kind: GetterConfiguration
-    version: v1alpha1
-  type: grpc
-  validVersions:
-  - v0.0.1
----
-apiVersion: composition.google.com/v1alpha1
-kind: ExpanderVersion
-metadata:
-  name: composition-jinja2
-  namespace: composition-system
-spec:
-  type: grpc
-  validVersions:
-  - v0.0.1
-  - v0.0.0
----
-apiVersion: composition.google.com/v1alpha1
-kind: ExpanderVersion
-metadata:
-  name: composition-jinja2-job
-  namespace: composition-system
-spec:
-  image: expander-jinja2
-  imageRegistry: gcr.io/krmapihosting-release
-  type: job
-  validVersions:
-  - v0.0.115
-  - v0.0.114
-  - v0.0.113
-  - v0.0.112
-  - v0.0.111
-  - v0.0.110
-  - v0.0.1
-  - v0.0.0

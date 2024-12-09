@@ -27,8 +27,9 @@ import (
 )
 
 var (
-	images *string = flag.String("images", "", "images")
-	useCC  *bool   = flag.Bool("use-cc", false, "use config controller cluster")
+	images       *string = flag.String("images", "", "images")
+	useCC        *bool   = flag.Bool("use-cc", false, "use config controller cluster")
+	reuseCluster *bool   = flag.Bool("reuse-cluster", false, "reuse a cluster if it exists")
 )
 
 // TestMain - umbrella test that runs all test cases
@@ -46,9 +47,9 @@ func TestMain(m *testing.M) {
 
 	clusterCount := 1
 	if *useCC {
-		cluster.CreateCCClusters(clusterCount, *images)
+		cluster.CreateCCClusters(*reuseCluster, clusterCount, *images)
 	} else {
-		cluster.CreateKindClusters(clusterCount, *images)
+		cluster.CreateKindClusters(*reuseCluster, clusterCount, *images)
 	}
 	exitCode := m.Run()
 

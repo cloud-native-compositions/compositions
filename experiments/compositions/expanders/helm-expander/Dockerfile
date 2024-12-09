@@ -49,7 +49,7 @@ RUN wget https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz -O /tmp/hel
 #ARG VERSION
 #  -ldflags "-X kpt.dev/configsync/pkg/version.VERSION=${VERSION}" \
 
-FROM gcr.io/distroless/static:latest as helm-sync
+FROM gcr.io/distroless/static:latest as expander
 # Setting HOME ensures that whatever UID this ultimately runs as can write files.
 ENV HOME=/tmp
 WORKDIR /

@@ -44,6 +44,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/client-go/util/workqueue"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -875,15 +876,18 @@ func (r *ExpanderReconciler) SetupWithManager(mgr ctrl.Manager, cr *unstructured
 		return fmt.Errorf("error building dynamic client: %w", err)
 	}
 
-	ratelimiter := workqueue.NewMaxOfRateLimiter(
-		workqueue.NewItemExponentialFailureRateLimiter(5*time.Millisecond, 120*time.Second),
+	ratelimiter := workqueue.NewTypedMaxOfRateLimiter[reconcile.Request](
+		workqueue.NewTypedItemExponentialFailureRateLimiter[reconcile.Request](5*time.Millisecond, 120*time.Second),
 		// 40 qps, 400 bucket size.  This is only for retry speed and its only the overall factor (not per item)
-		&workqueue.BucketRateLimiter{Limiter: rate.NewLimiter(rate.Limit(40), 400)},
+		&workqueue.TypedBucketRateLimiter[reconcile.Request]{Limiter: rate.NewLimiter(rate.Limit(40), 400)},
 	)
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(cr).
-		WatchesRawSource(&source.Channel{Source: r.CompositionChangedWatcher}, handler.EnqueueRequestsFromMapFunc(r.enqueueAllFromGVK)).
-		WithOptions(controller.Options{RateLimiter: ratelimiter}).
+		WatchesRawSource(source.Channel(r.CompositionChangedWatcher, handler.EnqueueRequestsFromMapFunc(r.enqueueAllFromGVK))).
+		WithOptions(controller.Options{
+			RateLimiter:        ratelimiter,
+			SkipNameValidation: ptr.To(true),
+		}).
 		Complete(r)
 }

@@ -12,25 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 # syntax=docker/dockerfile:1
 
 # ----------------- Build Container ---------------------------
 # Build the go app.
 # Explicitly set to latest vs golang:1.22
 FROM golang:1.23.2 AS build-stage
-
 # Set destination for COPY
 WORKDIR /go/src/app
-
 # Download Go modules
 # https://docs.docker.com/reference/dockerfile/#copy
-COPY go.mod go.sum ./
-COPY ./expanders ./expanders
-COPY ./proto ./proto
+COPY ./ ./
 RUN go mod download
-
 # Build
-RUN CGO_ENABLED=0 GOOS=linux go build -v -o expander expanders/jinja2/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -v -o expander main.go
+
+# ----------------- Version Injection ? ---------------------------
+#FROM golang:1.23.2 as bins
+#WORKDIR /workspace
+#ARG VERSION
+#  -ldflags "-X kpt.dev/configsync/pkg/version.VERSION=${VERSION}" \
+
 
 # ----------------- Expander Container ---------------------------
 FROM python:3.7-slim as expander
@@ -41,9 +44,9 @@ WORKDIR /
 COPY --from=build-stage /go/src/app/expander .
 
 
-COPY ./expanders/jinja2/requirements.txt ./
+COPY ./requirements.txt ./
 RUN pip install --require-hashes -r requirements.txt
-COPY ./expanders/jinja2/parse_template.py ./
+COPY ./parse_template.py ./
 
 # Required when setting pod .spec.securityContext.runAsNonRoot: true
 #USER 65532:65532
