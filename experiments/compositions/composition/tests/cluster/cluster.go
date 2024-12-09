@@ -33,6 +33,7 @@ const (
 	FacadeCRDManifests      = "../../release/test/facade_crds.yaml"
 	KindOperatorManifests   = "../../release/test/kind-operator.yaml"
 	GetterExpanderManifests = "../../../expanders/getter-expander/release/test/kind-operator.yaml"
+	Jinja2ExpanderManifests = "../../../expanders/jinja2-expander/release/test/kind-operator.yaml"
 	CCOperatorManifests     = "../../release/test/cc-operator.yaml"
 )
 
@@ -103,7 +104,7 @@ func CreateKindClusters(reuseCluster bool, clusterCount int, images string) {
 				// that adds these images
 				strings.Split(images, ","),
 				// and installs these manifests
-				[]string{CRDManifests, KindOperatorManifests, GetterExpanderManifests},
+				[]string{CRDManifests, KindOperatorManifests, GetterExpanderManifests, Jinja2ExpanderManifests},
 				// and waits for these deployments to be ready
 				[]types.NamespacedName{
 					{Namespace: "composition-system", Name: "composition-controller-manager"},
