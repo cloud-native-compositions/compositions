@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,12 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-set -o errexit
-set -o nounset
-set -o pipefail
 
-export PATH=$PATH:$(go env GOPATH)/bin
-REPO_ROOT=$(git rev-parse --show-toplevel)
-BASE_DIR=${REPO_ROOT}/experiments/compositions
-cd ${BASE_DIR}/expanders/jinja2-expander
-GCP_PROJECT_ID=something make unit-test
+# Adds namespace to all resources.
+namespace: composition-system
+namePrefix: composition-
+resources:
+- ../crd
+- ../expanders
+- ../expander-versions
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
