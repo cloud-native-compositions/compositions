@@ -1,12 +1,13 @@
+EXPANDER_NAME=cel
 GCP_PROJECT_ID ?= $(shell gcloud config get-value project)
 
 # Image URLs to use for building/pushing image targets
 GIT_IMG_VERSION ?= $(shell git rev-parse --short HEAD)
 IMG_VERSION ?= v0.0.1
 IMG_REGISTRY ?= gcr.io/$(GCP_PROJECT_ID)
-EXPANDER_IMG ?= $(IMG_REGISTRY)/expander-cel:$(IMG_VERSION)
-EXPANDER_BINARY ?= cel
-EXPANDER_SERVICE ?= composition-cel-v0-0-1
+EXPANDER_IMG ?= $(IMG_REGISTRY)/expander-$(EXPANDER_NAME):$(IMG_VERSION)
+EXPANDER_BINARY ?= $(EXPANDER_NAME)
+EXPANDER_SERVICE ?= composition-$(EXPANDER_NAME)-v0-0-1
 KIND_CLUSTER ?= kind
 GOPREFIX ?= GOWORK=off
 
@@ -17,7 +18,7 @@ all: build
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-##@ CEL Expander CRD and manifests
+##@ Expander CRD and manifests
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
@@ -28,8 +29,12 @@ generate: controller-gen
 	$(GOPREFIX) $(CONTROLLER_GEN) object paths="./api/..."
 
 .PHONY: fmt
-fmt: ## Run go fmt against code.
+fmt: license ## Run go fmt against code.
 	$(GOPREFIX) go fmt ./...
+
+.PHONY: license
+license:
+	GOFLAGS= $(GOPREFIX) go run github.com/google/addlicense@04bfe4ee9ca5764577b029acc6a1957fd1997153 -c "Google LLC" -l apache ./
 
 .PHONY: vet
 vet: ## Run go vet against code.
@@ -54,9 +59,9 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/expanders && $(KUSTOMIZE) edit set image expander-cel=${EXPANDER_IMG}
+	cd config/expanders && $(KUSTOMIZE) edit set image expander-$(EXPANDER_NAME)=${EXPANDER_IMG}
 	$(KUSTOMIZE) build config/default | $(KUBECTL) apply -f -
-	cd config/expanders && $(KUSTOMIZE) edit set image expander-cel=expander-cel:latest
+	cd config/expanders && $(KUSTOMIZE) edit set image expander-$(EXPANDER_NAME)=expander-$(EXPANDER_NAME):latest
 
 .PHONY: undeploy
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
@@ -66,6 +71,7 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 .PHONY: release-manifests
 release-manifests: manifests kustomize
 	$(KUSTOMIZE) build config/release -o release/manifest.yaml
+	$(MAKE) license
 
 ##@ Tooling
 ## Location to install dependencies to
@@ -115,9 +121,9 @@ mv "$$(echo "$(1)" | sed "s/-$(3)$$//")" $(1) ;\
 endef
 
 
-###### ----------- CEL Expander ----------------------------
+###### ----------- Expander ----------------------------
 
-##@ CEL expander pod
+##@ expander pod
 
 .PHONY: build
 build: generate
@@ -148,18 +154,30 @@ create-kind:
 	kind delete clusters ${KIND_CLUSTER} || true
 	kind create cluster --name ${KIND_CLUSTER}
 
-.PHONY: deploy-kind
-deploy-kind: kustomize manifests docker-build
+.PHONY: release-test-kind-manifests
+release-test-kind-manifests: manifests kustomize
+	mkdir -p release/test
+	$(KUSTOMIZE) build config/crd -o release/test/crds.yaml
+	cd config/expanders && $(KUSTOMIZE) edit set image expander-$(EXPANDER_NAME)=${EXPANDER_IMG}
+	$(KUSTOMIZE) build config/default -o release/test/kind-operator.yaml
+	cd config/expanders && $(KUSTOMIZE) edit set image expander-$(EXPANDER_NAME)=expander-$(EXPANDER_NAME):latest
+
+.PHONY: load-kind-images
+load-kind-images:
 	kind load docker-image ${EXPANDER_IMG} --name ${KIND_CLUSTER}
+
+.PHONY: apply-test-manifests
+apply-test-manifests:
 	$(KUBECTL) --context kind-${KIND_CLUSTER} create namespace composition-system || true
-	$(KUSTOMIZE) build config/crd | $(KUBECTL) --context kind-${KIND_CLUSTER} apply -f -
+	$(KUBECTL) --context kind-${KIND_CLUSTER} apply -f release/test/crds.yaml
 	sleep 5 # for CRDs to be registered
-	cd config/expanders && $(KUSTOMIZE) edit set image expander-cel=${EXPANDER_IMG}
-	$(KUSTOMIZE) build config/default | $(KUBECTL) --context kind-${KIND_CLUSTER} apply -f -
-	cd config/expanders && $(KUSTOMIZE) edit set image expander-cel=expander-cel:latest
-	# this is ok to fail for unit-test cases
-	$(KUSTOMIZE) build config/expander-versions | $(KUBECTL) --context kind-${KIND_CLUSTER} apply -f - || true
+	$(KUBECTL) --context kind-${KIND_CLUSTER} apply -f release/test/kind-operator.yaml || true # for expander version
 	sleep 5
+
+.PHONY: deploy-kind
+deploy-kind: release-test-kind-manifests docker-build
+	$(MAKE) load-kind-images
+	$(MAKE) apply-test-manifests
 	kubectl --context kind-${KIND_CLUSTER} get pods -A
 
 .PHONY: unit-test

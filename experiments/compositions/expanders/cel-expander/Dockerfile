@@ -40,7 +40,7 @@ WORKDIR /workspace
 #ARG VERSION
 #  -ldflags "-X kpt.dev/configsync/pkg/version.VERSION=${VERSION}" \
 
-FROM gcr.io/distroless/static:latest as cel-sync
+FROM gcr.io/distroless/static:latest as expander
 # Setting HOME ensures that whatever UID this ultimately runs as can write files.
 ENV HOME=/tmp
 WORKDIR /

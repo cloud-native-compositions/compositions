@@ -12,31 +12,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 # syntax=docker/dockerfile:1
 
 # ----------------- Build Container ---------------------------
 # Build the go app.
 # Explicitly set to latest vs golang:1.22
 FROM golang:1.23.2 AS build-stage
-
 # Set destination for COPY
 WORKDIR /go/src/app
-
 # Download Go modules
 # https://docs.docker.com/reference/dockerfile/#copy
-COPY . ./
+COPY ./ ./
 RUN go mod download
-
 # Build
-RUN CGO_ENABLED=0 GOOS=linux go build -v -o expander expanders/getter/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -v -o expander main.go
+
+# ----------------- Version Injection ? ---------------------------
+#FROM golang:1.23.2 as bins
+#WORKDIR /workspace
+#ARG VERSION
+#  -ldflags "-X kpt.dev/configsync/pkg/version.VERSION=${VERSION}" \
+
 
 # ----------------- Expander Container ---------------------------
 #FROM marketplace.gcr.io/google/debian10:latest as bootstrap
-FROM scratch as inline
-
-EXPOSE 8443
-
+FROM scratch as expander
+#FROM gcr.io/distroless/static:latest as expander
+#EXPOSE 8443
+# Setting HOME ensures that whatever UID this ultimately runs as can write files.
+#ENV HOME=/tmp
 WORKDIR /
 COPY --from=build-stage /go/src/app/expander .
-
 ENTRYPOINT ["/expander"]
+# Switch to non-root user
+#USER 1000

@@ -303,7 +303,7 @@ func TestEvaluateGetterConfigurationValidObjectNoFieldRef(t *testing.T) {
 						Version:  "v1",
 						Resource: "deployments",
 						Kind:     "Deployment",
-						Name:     "composition-controller-manager",
+						Name:     "composition-getter-v0.0.1",
 					},
 					// Empty fieldref
 					FieldRef: []compositionv1alpha1.FieldRef{},
@@ -345,7 +345,7 @@ func TestEvaluateGetterConfigurationValidObjectWithMissingField(t *testing.T) {
 						Version:  "v1",
 						Resource: "deployments",
 						Kind:     "Deployment",
-						Name:     "composition-controller-manager",
+						Name:     "composition-getter-v0.0.1",
 					},
 					// Empty fieldref
 					FieldRef: []compositionv1alpha1.FieldRef{
@@ -376,7 +376,7 @@ func TestEvaluateGetterConfigurationValidObjectWithMissingField(t *testing.T) {
 	}
 
 	expectedErrorString := "Field path not present in object yet: " +
-		"Deployment.apps(v1)/composition-system/composition-controller-manager" +
+		"Deployment.apps(v1)/composition-system/composition-getter-v0.0.1" +
 		"[.spec.template.foobar]"
 	if !strings.Contains(r.Error.Message, expectedErrorString) {
 		t.Fatalf("expected error contains: %s \n got: %s", expectedErrorString, r)
@@ -396,7 +396,7 @@ func TestEvaluateGetterConfigurationValidObjectWithValidField(t *testing.T) {
 						Version:  "v1",
 						Resource: "deployments",
 						Kind:     "Deployment",
-						Name:     "composition-controller-manager",
+						Name:     "composition-getter-v0.0.1",
 					},
 					// Empty fieldref
 					FieldRef: []compositionv1alpha1.FieldRef{
@@ -444,7 +444,7 @@ func TestEvaluateGetterConfigurationValidObjectWithMultipleFields(t *testing.T) 
 						Version:  "v1",
 						Resource: "deployments",
 						Kind:     "Deployment",
-						Name:     "composition-controller-manager",
+						Name:     "composition-getter-v0.0.1",
 					},
 					// Empty fieldref
 					FieldRef: []compositionv1alpha1.FieldRef{
