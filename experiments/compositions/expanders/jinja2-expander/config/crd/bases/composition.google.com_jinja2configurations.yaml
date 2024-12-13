@@ -18,20 +18,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
-  name: getterconfigurations.composition.google.com
+  name: jinja2configurations.composition.google.com
 spec:
   group: composition.google.com
   names:
-    kind: GetterConfiguration
-    listKind: GetterConfigurationList
-    plural: getterconfigurations
-    singular: getterconfiguration
+    kind: Jinja2Configuration
+    listKind: Jinja2ConfigurationList
+    plural: jinja2configurations
+    singular: jinja2configuration
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: GetterConfiguration is the Schema for the getters API
+        description: Jinja2Configuration is the Schema for the jinja2 expander
         properties:
           apiVersion:
             description: |-
@@ -51,54 +51,15 @@ spec:
           metadata:
             type: object
           spec:
-            description: GetterConfigurationSpec defines the desired state of GetterConfiguration
+            description: Jinja2ConfigurationSpec defines the desired state of Jinja2Configuration
             properties:
-              valuesFrom:
-                items:
-                  properties:
-                    fieldRef:
-                      items:
-                        properties:
-                          as:
-                            type: string
-                          path:
-                            type: string
-                        required:
-                        - as
-                        - path
-                        type: object
-                      type: array
-                    name:
-                      type: string
-                    resourceRef:
-                      properties:
-                        group:
-                          description: OPTION 2
-                          type: string
-                        kind:
-                          type: string
-                        name:
-                          description: OneOf validation added for Name and NameSuffix
-                          type: string
-                        nameSuffix:
-                          type: string
-                        resource:
-                          type: string
-                        version:
-                          type: string
-                      required:
-                      - kind
-                      - resource
-                      type: object
-                  required:
-                  - fieldRef
-                  - name
-                  - resourceRef
-                  type: object
-                type: array
+              template:
+                type: string
+            required:
+            - template
             type: object
           status:
-            description: GetterConfigurationStatus defines the observed state of GetterConfiguration
+            description: Jinja2ConfigurationStatus defines the observed state of Jinja2Configuration
             properties:
               conditions:
                 items:
