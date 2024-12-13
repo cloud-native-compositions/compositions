@@ -13,11 +13,10 @@
 # limitations under the License.
 
 resources:
-- expander_versions.yaml
-- jinja2-v0.0.1.yaml
+- getter-v0.0.1.yaml
 images:
-- name: expander-jinja2
-  newName: expander-jinja2
+- name: expander-getter
+  newName: expander-getter
   newTag: latest
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization

@@ -19,5 +19,5 @@ set -o pipefail
 export PATH=$PATH:$(go env GOPATH)/bin
 REPO_ROOT=$(git rev-parse --show-toplevel)
 BASE_DIR=${REPO_ROOT}/experiments/compositions
-cd ${BASE_DIR}/composition
-GCP_PROJECT_ID=something make unit-test-expander-getter
+cd ${BASE_DIR}/expanders/getter-expander
+GCP_PROJECT_ID=something make unit-test

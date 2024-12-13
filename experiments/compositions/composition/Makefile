@@ -121,10 +121,10 @@ docker-push-composition: ## Push docker image with the manager.
 	$(CONTAINER_TOOL) push ${IMG}
 
 .PHONY: docker-build
-docker-build: docker-build-composition docker-build-inline docker-build-expander-jinja2 docker-build-expander-getter
+docker-build: docker-build-composition docker-build-inline docker-build-expander-jinja2
 
 .PHONY: docker-push
-docker-push: docker-push-composition docker-push-inline docker-push-expander-jinja2 docker-push-expander-getter
+docker-push: docker-push-composition docker-push-inline docker-push-expander-jinja2
 
 # PLATFORMS defines the target platforms for the manager image be built to provide support to multiple
 # architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
@@ -161,22 +161,18 @@ release-test-cc-manifests: common-test-manifests
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	cd config/default && $(KUSTOMIZE) edit add patch --namespace system --name controller-manager --kind Deployment --patch "[{\"op\": \"add\", \"path\": \"/spec/template/spec/containers/1/imagePullPolicy\", \"value\": \"Always\"}]"
 	cd config/expanders && $(KUSTOMIZE) edit set image expander-jinja2=${JINJA_IMG}
-	cd config/expanders && $(KUSTOMIZE) edit set image expander-getter=${GETTER_IMG}
 	$(KUSTOMIZE) build config/default -o release/test/cc-operator.yaml
 	cd config/manager && $(KUSTOMIZE) edit set image controller=composition:latest
 	cd config/default && $(KUSTOMIZE) edit remove patch --namespace system --name controller-manager --kind Deployment --patch "[{\"op\": \"add\", \"path\": \"/spec/template/spec/containers/1/imagePullPolicy\", \"value\": \"Always\"}]"
 	cd config/expanders && $(KUSTOMIZE) edit set image expander-jinja2=expander-jinja2:latest
-	cd config/expanders && $(KUSTOMIZE) edit set image expander-getter=expander-getter:latest
 
 .PHONY: release-kind-manifests
 release-test-kind-manifests: common-test-manifests
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	cd config/expanders && $(KUSTOMIZE) edit set image expander-jinja2=${JINJA_IMG}
-	cd config/expanders && $(KUSTOMIZE) edit set image expander-getter=${GETTER_IMG}
 	$(KUSTOMIZE) build config/default -o release/test/kind-operator.yaml
 	cd config/manager && $(KUSTOMIZE) edit set image controller=composition:latest
 	cd config/expanders && $(KUSTOMIZE) edit set image expander-jinja2=expander-jinja2:latest
-	cd config/expanders && $(KUSTOMIZE) edit set image expander-getter=expander-getter:latest
 
 .PHONY: load-kind-images
 load-kind-images:
@@ -186,7 +182,6 @@ load-kind-images:
 	kind load docker-image nginx:1.16.0 --name ${KIND_CLUSTER}
 	kind load docker-image ${INLINE_IMG} --name ${KIND_CLUSTER}
 	kind load docker-image ${JINJA_IMG} --name ${KIND_CLUSTER}
-	kind load docker-image ${GETTER_IMG} --name ${KIND_CLUSTER}
 
 .PHONY: apply-test-manifests
 apply-test-manifests:
@@ -203,8 +198,12 @@ create-kind-cluster:
 
 .PHONY: deploy-kind
 deploy-kind: release-test-kind-manifests docker-build
+	cd ../expanders/getter-expander/; $(MAKE) docker-build
+	cd ../expanders/getter-expander/; $(MAKE) release-test-kind-manifests
+	cd ../expanders/getter-expander/; $(MAKE) load-kind-images
 	$(MAKE) load-kind-images
 	$(MAKE) apply-test-manifests
+	cd ../expanders/getter-expander/; $(MAKE) apply-test-manifests
 	kubectl --context kind-${KIND_CLUSTER} get pods -A
 
 
@@ -215,15 +214,22 @@ run-testcase:
 	cd tests/testcases/ && $(GOPREFIX) go test -v -timeout 3600s -run "^${TESTCASE}" --images=${IMG},${INLINE_IMG},${JINJA_IMG},${GETTER_IMG} --reuse-cluster=true
 
 .PHONY: e2e-single-test
-e2e-single-test: release-test-kind-manifests docker-build docker-build-inline docker-build-expander-jinja2 docker-build-expander-getter fmt #docker-push docker-push-inline docker-push-expander-jinja2 docker-push-expander-getter
+e2e-single-test: release-test-kind-manifests docker-build docker-build-inline docker-build-expander-jinja2 fmt
+	cd ../expanders/getter-expander/; $(MAKE) docker-build
+	cd ../expanders/getter-expander/; $(MAKE) release-test-kind-manifests
 	cd tests/testcases/ && $(GOPREFIX) go test -v -timeout 3600s -run "^${TESTCASE}" --images=${IMG},${INLINE_IMG},${JINJA_IMG},${GETTER_IMG}
 
 .PHONY: e2e-test
-e2e-test: release-test-kind-manifests docker-build docker-build-inline docker-build-expander-jinja2 docker-build-expander-getter fmt #docker-push docker-push-inline docker-push-expander-jinja2 docker-push-expander-getter
+e2e-test: release-test-kind-manifests docker-build docker-build-inline docker-build-expander-jinja2 fmt
+	cd ../expanders/getter-expander/; $(MAKE) docker-build
+	cd ../expanders/getter-expander/; $(MAKE) release-test-kind-manifests
 	cd tests/testcases/ && $(GOPREFIX) go test -v -timeout 3600s -run ./... --images=${IMG},${INLINE_IMG},${JINJA_IMG},${GETTER_IMG}
 
 .PHONY: kcc-test
-kcc-test: release-test-cc-manifests docker-build docker-build-inline docker-build-expander-jinja2 docker-build-expander-getter fmt docker-push docker-push-inline docker-push-expander-jinja2 docker-push-expander-getter
+kcc-test: release-test-cc-manifests docker-build docker-build-inline docker-build-expander-jinja2 fmt docker-push docker-push-inline docker-push-expander-jinja2
+	cd ../expanders/getter-expander/; $(MAKE) docker-build
+	cd ../expanders/getter-expander/; $(MAKE) docker-push
+	cd ../expanders/getter-expander/; $(MAKE) release-test-kind-manifests
 	cd tests/testcases/ && $(GOPREFIX) go test -v -timeout 3600s -run "^TestKCCSampleCloudSQL" --use-cc=true --images=${IMG},${INLINE_IMG},${JINJA_IMG},${GETTER_IMG}
 
 ##@ Deployment
