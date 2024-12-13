@@ -314,6 +314,31 @@ func TestSimpleNamespaceExplicit(t *testing.T) {
 }
 
 // Test Bring Your OWN Schema
+func TestCompositionWithSimpleSchema(t *testing.T) {
+	//t.Parallel()
+	s := scenario.NewBasic(t)
+	defer s.Cleanup()
+	s.Setup()
+
+	// TODO Add Ready condition which we should wait for
+	time.Sleep(time.Second * 10)
+
+	// Verify CRD has been created and defn matches
+	s.VerifyManifests("facade pconfig crd", true, "out_crd_pconfigs.yaml")
+
+	// Create a facade from the new CRD
+	s.ApplyManifests("facade cr", "in_pconfig.yaml")
+
+	// Ensure no Error condition in Plan
+	plan := utils.GetPlanObj("team-a", "pconfigs-team-a-config")
+	condition := utils.GetErrorCondition("", "")
+	s.C.MustNotHaveCondition(plan, condition, 2*scenario.CompositionReconcileTimeout)
+
+	// Verify the composition progresses after being unblocked
+	s.VerifyOutputExists()
+}
+
+// Test Bring Your OWN Schema
 func TestSimpleFacadeByoSchema(t *testing.T) {
 	//t.Parallel()
 	s := scenario.NewBasic(t)

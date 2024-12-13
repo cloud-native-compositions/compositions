@@ -183,15 +183,21 @@ deploy-kind: release-test-kind-manifests docker-build docker-build-inline docker
 	kind load docker-image ${INLINE_IMG} --name ${KIND_CLUSTER}
 	kind load docker-image ${JINJA_IMG} --name ${KIND_CLUSTER}
 	kind load docker-image ${GETTER_IMG} --name ${KIND_CLUSTER}
-	kubectl --context kind-${KIND_CLUSTER} apply -f release/test/crds.yaml
+	kubectl --context kind-${KIND_CLUSTER} apply -f release/test/crds.yaml --validate=false
 	#kubectl --context kind-${KIND_CLUSTER} apply -f release/test/facade_crds.yaml
 	sleep 5 # for CRDs to be registered
-	kubectl --context kind-${KIND_CLUSTER} apply -f release/test/kind-operator.yaml
+	kubectl --context kind-${KIND_CLUSTER} apply -f release/test/kind-operator.yaml --validate=false
 	sleep 5
 	kubectl --context kind-${KIND_CLUSTER} get pods -A
 
 
-.PHONY: run-testcase
+
+# reuse cluster and run a single test
+.PHONY: single-test
+run-testcase: 
+	cd tests/testcases/ && $(GOPREFIX) go test -v -timeout 3600s -run "^${TESTCASE}" --images=${IMG},${INLINE_IMG},${JINJA_IMG},${GETTER_IMG} --reuse-cluster=true
+
+.PHONY: e2e-single-test
 run-testcase: release-test-kind-manifests docker-build docker-build-inline docker-build-expander-jinja2 docker-build-expander-getter fmt #docker-push docker-push-inline docker-push-expander-jinja2 docker-push-expander-getter
 	cd tests/testcases/ && $(GOPREFIX) go test -v -timeout 3600s -run "^${TESTCASE}" --images=${IMG},${INLINE_IMG},${JINJA_IMG},${GETTER_IMG}
 

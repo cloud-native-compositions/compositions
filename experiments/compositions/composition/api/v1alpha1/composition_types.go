@@ -19,6 +19,7 @@ package v1alpha1
 import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
 // ConditionType defines the type of ManagedConfigSync condition
@@ -34,6 +35,39 @@ const (
 	// Waiting - Plan is waiting for values to progress
 	Waiting ConditionType = "Waiting"
 )
+
+// Schema represents the attributes that define an instance of
+// a resourcegroup.
+type Schema struct {
+	// The group of the resourcegroup. This is used to generate
+	// and create the CRD for the resourcegroup.
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="kind is immutable"
+	Group string `json:"group,omitempty"`
+	// The kind of the resourcegroup. This is used to generate
+	// and create the CRD for the resourcegroup.
+	//
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="kind is immutable"
+	Kind string `json:"kind,omitempty"`
+	// The APIVersion of the resourcegroup. This is used to generate
+	// and create the CRD for the resourcegroup.
+	//
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="apiVersion is immutable"
+	APIVersion string `json:"apiVersion,omitempty"`
+	// The spec of the resourcegroup. Typically, this is the spec of
+	// the CRD that the resourcegroup is managing. This is adhering
+	// to the SimpleSchema spec
+	Spec runtime.RawExtension `json:"spec,omitempty"`
+	// The status of the resourcegroup. This is the status of the CRD
+	// that the resourcegroup is managing. This is adhering to the
+	// SimpleSchema spec.
+	Status runtime.RawExtension `json:"status,omitempty"`
+	// Validation is a list of validation rules that are applied to the
+	// resourcegroup.
+	// Not implemented yet.
+	Validation []string `json:"validation,omitempty"`
+}
 
 type Jinja2 struct {
 	Template string `json:"template"`
@@ -111,6 +145,13 @@ type CompositionSpec struct {
 
 	// Use existing KRM API
 	InputAPIGroup string `json:"inputAPIGroup,omitempty"`
+
+	// The schema of the resourcegroup, which includes the
+	// apiVersion, kind, spec, status, types, and some validation
+	// rules.
+	//
+	// +kubebuilder:validation:Required
+	Schema *Schema `json:"schema,omitempty"`
 
 	//+kubebuilder:validation:MinItems=1
 	Expanders []Expander `json:"expanders"`
